@@ -1,6 +1,7 @@
 package com.github.ssquadteam.talelib.lang
 
 import com.github.ssquadteam.talelib.message.toMessage
+import com.github.ssquadteam.hytaleminiformat.MiniFormat
 import com.github.ssquadteam.talelib.player.send
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.command.system.CommandSender
@@ -28,7 +29,7 @@ abstract class AbstractConfigLang<K> {
             raw = raw.replace("{$k}", v).replace("%$k%", v)
         }
         
-        return raw.toMessage() 
+        return MiniFormat.parse(raw) 
     }
 
     fun send(player: PlayerRef, key: K, placeholders: Map<String, String> = emptyMap()) {
