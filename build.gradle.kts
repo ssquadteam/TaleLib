@@ -53,7 +53,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
 
     // HytaleRequest
-    implementation("com.github.ssquadteam:HytaleMiniFormat:0.0.1")
+    api("com.github.ssquadteam:HytaleMiniFormat:0.0.1")
 }
 
 // Server Run Directory
