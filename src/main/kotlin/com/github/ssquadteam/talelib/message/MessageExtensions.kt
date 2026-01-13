@@ -3,6 +3,8 @@
 package com.github.ssquadteam.talelib.message
 
 import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.protocol.MaybeBool
+import com.github.ssquadteam.hytaleminiformat.Colors
 
 fun String.toMessage(): Message = Message.raw(this)
 fun String.toTranslation(): Message = Message.translation(this)
@@ -15,11 +17,9 @@ fun String.muted(): Message = this.toMessage().color(Colors.MUTED)
 fun String.highlight(): Message = this.toMessage().color(Colors.HIGHLIGHT)
 fun String.primary(): Message = this.toMessage().color(Colors.PRIMARY)
 
-fun Message.color(hexColor: String): Message = this.color(hexColor)
 fun Message.bold(): Message = this.bold(true)
 fun Message.italic(): Message = this.italic(true)
 fun Message.monospace(): Message = this.monospace(true)
-fun Message.link(url: String): Message = this.link(url)
 
 fun messages(vararg messages: Message): Message = Message.join(*messages)
 fun messages(vararg strings: String): Message = Message.join(*strings.map { it.toMessage() }.toTypedArray())
@@ -38,7 +38,11 @@ fun String.withPrefix(prefix: String, prefixColor: String = Colors.GOLD): Messag
 )
 
 fun emptyMessage(): Message = Message.raw("")
-fun newline(): Message = Message.raw("\n")
 
 fun separator(char: Char = '-', length: Int = 40, color: String = Colors.GRAY): Message =
     char.toString().repeat(length).toMessage().color(color)
+
+fun Message.underlined(underlined: Boolean): Message {
+    this.formattedMessage.underlined = if (underlined) MaybeBool.True else MaybeBool.False
+    return this
+}

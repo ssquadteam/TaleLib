@@ -1,6 +1,7 @@
 package com.github.ssquadteam.talelib.message
 
 import com.hypixel.hytale.server.core.Message
+import com.github.ssquadteam.hytaleminiformat.Colors
 
 class MessageBuilder {
     private val parts = mutableListOf<Message>()

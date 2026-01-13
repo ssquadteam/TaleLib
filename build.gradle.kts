@@ -51,6 +51,9 @@ dependencies {
 
     // Reflection for annotation processing
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+
+    // HytaleRequest
+    implementation("com.github.ssquadteam:HytaleMiniFormat:0.0.1")
 }
 
 // Server Run Directory
@@ -134,11 +137,14 @@ sourceSets {
 // Jar configuration - include Kotlin dependencies
 tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(configurations.runtimeClasspath.get().filter {
-        it.name.startsWith("kotlin-stdlib") ||
-        it.name.startsWith("kotlinx-coroutines") ||
-        it.name.startsWith("kotlinx-serialization")
-    }.map { if (it.isDirectory) it else zipTree(it) })
+    from(provider {
+        configurations.runtimeClasspath.get().filter {
+            it.name.startsWith("kotlin-stdlib") ||
+            it.name.startsWith("kotlinx-coroutines") ||
+            it.name.startsWith("kotlinx-serialization") ||
+            it.name.startsWith("HytaleMiniFormat")
+        }.map { if (it.isDirectory) it else zipTree(it) }
+    })
     exclude(".idea/**")
 
     manifest {

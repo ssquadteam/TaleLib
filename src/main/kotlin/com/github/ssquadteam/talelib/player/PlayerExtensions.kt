@@ -2,7 +2,7 @@
 
 package com.github.ssquadteam.talelib.player
 
-import com.github.ssquadteam.talelib.message.Colors
+import com.github.ssquadteam.hytaleminiformat.Colors
 import com.github.ssquadteam.talelib.message.error
 import com.github.ssquadteam.talelib.message.info
 import com.github.ssquadteam.talelib.message.success
