@@ -49,3 +49,12 @@ fun Player.setViewDistance(distance: Int) = this.setClientViewRadius(distance)
 
 fun PlayerRef.displayString(): String = this.username
 fun PlayerRef.displayMessage(color: String = Colors.AQUA): Message = this.username.toMessage().color(color)
+
+fun Iterable<PlayerRef>.broadcast(message: String) {
+    val msg = Message.raw(message)
+    this.forEach { it.sendMessage(msg) }
+}
+
+fun Iterable<PlayerRef>.broadcast(message: Message) {
+    this.forEach { it.sendMessage(message) }
+}
