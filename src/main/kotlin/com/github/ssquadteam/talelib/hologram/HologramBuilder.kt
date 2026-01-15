@@ -1,9 +1,12 @@
 package com.github.ssquadteam.talelib.hologram
 
 import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.server.core.universe.world.World
+import java.util.UUID
 
-class HologramBuilder(private val world: World) {
+// Note: This is a placeholder builder. The actual hologram creation
+// requires integration with Hytale's NPC/prefab system.
+
+class HologramBuilder {
     private var text: String = ""
     private val lines = mutableListOf<String>()
     private var x: Double = 0.0
@@ -41,20 +44,33 @@ class HologramBuilder(private val world: World) {
     }
 
     fun create(): List<Hologram> {
+        // Create placeholder holograms (not real entities)
         return if (lines.isNotEmpty()) {
-            world.createMultiLineHologram(lines, x, y, z, lineSpacing)
+            lines.mapIndexed { index, line ->
+                val hologram = Hologram(
+                    UUID.randomUUID(),
+                    line,
+                    x,
+                    y + (lines.size - 1 - index) * lineSpacing,
+                    z
+                )
+                HologramManager.register(hologram)
+                hologram
+            }
         } else if (text.isNotEmpty()) {
-            listOfNotNull(world.createHologram(text, x, y, z))
+            val hologram = Hologram(UUID.randomUUID(), text, x, y, z)
+            HologramManager.register(hologram)
+            listOf(hologram)
         } else {
             emptyList()
         }
     }
 }
 
-fun World.hologram(block: HologramBuilder.() -> Unit): List<Hologram> {
-    return HologramBuilder(this).apply(block).create()
+fun hologram(block: HologramBuilder.() -> Unit): List<Hologram> {
+    return HologramBuilder().apply(block).create()
 }
 
-fun World.hologramSingle(block: HologramBuilder.() -> Unit): Hologram? {
-    return HologramBuilder(this).apply(block).create().firstOrNull()
+fun hologramSingle(block: HologramBuilder.() -> Unit): Hologram? {
+    return HologramBuilder().apply(block).create().firstOrNull()
 }

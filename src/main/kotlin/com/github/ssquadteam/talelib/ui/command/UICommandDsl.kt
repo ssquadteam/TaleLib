@@ -1,9 +1,9 @@
-@file:JvmName("UICommandDsl")
+@file:JvmName("UICommandDslKt")
 
 package com.github.ssquadteam.talelib.ui.command
 
 import com.github.ssquadteam.talelib.ui.element.ElementRef
-import com.hypixel.hytale.server.core.ui.UICommandBuilder
+import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 
 class UICommandDsl(private val builder: UICommandBuilder) {
 
@@ -12,13 +12,28 @@ class UICommandDsl(private val builder: UICommandBuilder) {
         return this
     }
 
-    fun set(property: String, value: Any?): UICommandDsl {
+    fun set(property: String, value: String): UICommandDsl {
         builder.set(property, value)
         return this
     }
 
-    fun set(element: ElementRef, property: String, value: Any?): UICommandDsl {
-        builder.set(element.property(property), value)
+    fun set(property: String, value: Int): UICommandDsl {
+        builder.set(property, value)
+        return this
+    }
+
+    fun set(property: String, value: Float): UICommandDsl {
+        builder.set(property, value)
+        return this
+    }
+
+    fun set(property: String, value: Double): UICommandDsl {
+        builder.set(property, value)
+        return this
+    }
+
+    fun set(property: String, value: Boolean): UICommandDsl {
+        builder.set(property, value)
         return this
     }
 
@@ -52,25 +67,37 @@ class UICommandDsl(private val builder: UICommandBuilder) {
         return this
     }
 
-    fun progress(elementId: String, current: Number, max: Number): UICommandDsl {
+    fun progress(elementId: String, current: Int, max: Int): UICommandDsl {
         builder.set("$elementId.progress", current)
         builder.set("$elementId.maxProgress", max)
         return this
     }
 
-    fun progress(element: ElementRef, current: Number, max: Number): UICommandDsl {
+    fun progress(element: ElementRef, current: Int, max: Int): UICommandDsl {
+        builder.set(element.progress, current)
+        builder.set(element.maxProgress, max)
+        return this
+    }
+
+    fun progressFloat(elementId: String, current: Float, max: Float): UICommandDsl {
+        builder.set("$elementId.progress", current)
+        builder.set("$elementId.maxProgress", max)
+        return this
+    }
+
+    fun progressFloat(element: ElementRef, current: Float, max: Float): UICommandDsl {
         builder.set(element.progress, current)
         builder.set(element.maxProgress, max)
         return this
     }
 
     fun color(elementId: String, r: Int, g: Int, b: Int, a: Int = 255): UICommandDsl {
-        builder.set("$elementId.color", listOf(r, g, b, a))
+        builder.set("$elementId.color", arrayOf(r, g, b, a))
         return this
     }
 
     fun color(element: ElementRef, r: Int, g: Int, b: Int, a: Int = 255): UICommandDsl {
-        builder.set(element.color, listOf(r, g, b, a))
+        builder.set(element.color, arrayOf(r, g, b, a))
         return this
     }
 
@@ -119,10 +146,6 @@ class UICommandDsl(private val builder: UICommandBuilder) {
     fun enable(element: ElementRef): UICommandDsl = enabled(element, true)
 
     fun disable(element: ElementRef): UICommandDsl = enabled(element, false)
-
-    fun listItem(listId: String, index: Int, block: UICommandDsl.() -> Unit): UICommandDsl {
-        return this
-    }
 
     fun build(): UICommandBuilder = builder
 }

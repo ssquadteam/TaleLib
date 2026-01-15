@@ -1,43 +1,47 @@
-@file:JvmName("TaleHud")
+@file:JvmName("TaleHudKt")
 
 package com.github.ssquadteam.talelib.ui.hud
 
+import com.github.ssquadteam.talelib.inventory.getPlayerComponent
 import com.github.ssquadteam.talelib.ui.command.UICommandDsl
 import com.github.ssquadteam.talelib.ui.command.dsl
 import com.github.ssquadteam.talelib.ui.element.ElementRef
 import com.hypixel.hytale.server.core.entity.entities.Player
-import com.hypixel.hytale.server.core.ui.HudLayer
-import com.hypixel.hytale.server.core.ui.UICommandBuilder
+import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud
+import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class TaleHud(
     val id: String,
-    val uiPath: String,
-    val layer: HudLayer = HudLayer.DEFAULT
+    val uiPath: String
 ) {
     private val activeForPlayers = ConcurrentHashMap.newKeySet<PlayerRef>()
+    private val customHuds = ConcurrentHashMap<PlayerRef, TaleCustomUIHud>()
 
     open fun onShow(player: PlayerRef) {}
 
     open fun onHide(player: PlayerRef) {}
 
-    open fun onUpdate(player: PlayerRef, builder: UICommandBuilder) {}
+    open fun onBuild(player: PlayerRef, builder: UICommandBuilder) {
+        builder.append(uiPath)
+    }
 
     fun show(player: PlayerRef) {
-        player.player?.let { p ->
-            p.hud.add(uiPath, layer)
-            activeForPlayers.add(player)
-            onShow(player)
-        }
+        val p = player.getPlayerComponent() ?: return
+        val customHud = TaleCustomUIHud(player, this)
+        customHuds[player] = customHud
+        p.hudManager.setCustomHud(player, customHud)
+        activeForPlayers.add(player)
+        onShow(player)
     }
 
     fun hide(player: PlayerRef) {
-        player.player?.let { p ->
-            p.hud.remove(uiPath)
-            activeForPlayers.remove(player)
-            onHide(player)
-        }
+        val p = player.getPlayerComponent() ?: return
+        customHuds.remove(player)
+        p.hudManager.setCustomHud(player, null)
+        activeForPlayers.remove(player)
+        onHide(player)
     }
 
     fun toggle(player: PlayerRef) {
@@ -51,11 +55,10 @@ abstract class TaleHud(
     fun isShownTo(player: PlayerRef): Boolean = activeForPlayers.contains(player)
 
     fun update(player: PlayerRef, block: UICommandDsl.() -> Unit) {
-        player.player?.let { p ->
-            val builder = UICommandBuilder()
-            builder.dsl(block)
-            p.hud.update(builder)
-        }
+        val customHud = customHuds[player] ?: return
+        val builder = UICommandBuilder()
+        builder.dsl(block)
+        customHud.update(false, builder)
     }
 
     fun updateAll(block: UICommandDsl.() -> Unit) {
@@ -94,12 +97,21 @@ abstract class TaleHud(
         update(player) { visible(elementId, visible) }
     }
 
-    fun setProgress(player: PlayerRef, element: ElementRef, current: Number, max: Number) {
+    fun setProgress(player: PlayerRef, element: ElementRef, current: Int, max: Int) {
         update(player) { progress(element, current, max) }
     }
 
-    fun setProgress(player: PlayerRef, elementId: String, current: Number, max: Number) {
+    fun setProgress(player: PlayerRef, elementId: String, current: Int, max: Int) {
         update(player) { progress(elementId, current, max) }
+    }
+}
+
+internal class TaleCustomUIHud(
+    playerRef: PlayerRef,
+    private val taleHud: TaleHud
+) : CustomUIHud(playerRef) {
+    override fun build(builder: UICommandBuilder) {
+        taleHud.onBuild(playerRef, builder)
     }
 }
 

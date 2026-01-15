@@ -1,4 +1,4 @@
-@file:JvmName("ElementRef")
+@file:JvmName("ElementRefKt")
 
 package com.github.ssquadteam.talelib.ui.element
 

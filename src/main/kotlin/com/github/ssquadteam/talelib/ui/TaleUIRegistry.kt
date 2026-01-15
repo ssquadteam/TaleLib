@@ -9,14 +9,14 @@ import java.util.concurrent.ConcurrentHashMap
 
 class TaleUIRegistry {
     private val huds = ConcurrentHashMap<String, TaleHud>()
-    private val pages = ConcurrentHashMap<String, TalePage<*>>()
+    private val pages = ConcurrentHashMap<String, TalePage>()
 
     fun registerHud(hud: TaleHud): TaleHud {
         huds[hud.id] = hud
         return hud
     }
 
-    fun <T : Any> registerPage(page: TalePage<T>): TalePage<T> {
+    fun registerPage(page: TalePage): TalePage {
         pages[page.id] = page
         return page
     }
@@ -31,12 +31,11 @@ class TaleUIRegistry {
 
     fun getHud(id: String): TaleHud? = huds[id]
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Any> getPage(id: String): TalePage<T>? = pages[id] as? TalePage<T>
+    fun getPage(id: String): TalePage? = pages[id]
 
     fun getAllHuds(): Collection<TaleHud> = huds.values.toList()
 
-    fun getAllPages(): Collection<TalePage<*>> = pages.values.toList()
+    fun getAllPages(): Collection<TalePage> = pages.values.toList()
 
     fun hideAllHudsFrom(player: PlayerRef) {
         huds.values.forEach { hud ->

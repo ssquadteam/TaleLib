@@ -1,62 +1,64 @@
-@file:JvmName("TalePage")
+@file:JvmName("TalePageKt")
 
 package com.github.ssquadteam.talelib.ui.page
 
+import com.github.ssquadteam.talelib.inventory.getPlayerComponent
 import com.github.ssquadteam.talelib.ui.command.UICommandDsl
 import com.github.ssquadteam.talelib.ui.command.dsl
 import com.github.ssquadteam.talelib.ui.element.ElementRef
+import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.component.Store
+import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime
 import com.hypixel.hytale.server.core.entity.entities.Player
-import com.hypixel.hytale.server.core.ui.UICommandBuilder
-import com.hypixel.hytale.server.core.ui.interactive.InteractiveUI
-import com.hypixel.hytale.server.core.ui.interactive.UIInteraction
+import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage
+import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
+import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import java.util.concurrent.ConcurrentHashMap
 
-abstract class TalePage<T : Any>(
+abstract class TalePage(
     val id: String,
-    val uiPath: String,
-    val dataClass: Class<T>
+    val uiPath: String
 ) {
-    private val activePages = ConcurrentHashMap<PlayerRef, InteractiveUI<T>>()
+    private val activePages = ConcurrentHashMap<PlayerRef, TaleCustomUIPage>()
 
-    open fun onOpen(player: PlayerRef, data: T) {}
+    open fun onOpen(player: PlayerRef) {}
 
     open fun onClose(player: PlayerRef) {}
 
-    open fun onInteraction(player: PlayerRef, interaction: UIInteraction, data: T): T = data
+    open fun onBuild(player: PlayerRef, builder: UICommandBuilder, eventBuilder: UIEventBuilder) {
+        builder.append(uiPath)
+    }
 
-    fun open(player: PlayerRef, data: T) {
-        player.player?.let { p ->
-            val ui = p.openInteractiveUI(uiPath, data, dataClass) { interaction, currentData ->
-                onInteraction(player, interaction, currentData)
-            }
-            if (ui != null) {
-                activePages[player] = ui
-                onOpen(player, data)
-            }
-        }
+    open fun onEvent(player: PlayerRef, eventData: String?) {}
+
+    fun open(player: PlayerRef) {
+        val p = player.getPlayerComponent() ?: return
+        val ref = player.reference ?: return
+        val store = ref.store
+        val customPage = TaleCustomUIPage(player, this)
+        activePages[player] = customPage
+        p.pageManager.openCustomPage(ref, store, customPage)
+        onOpen(player)
     }
 
     fun close(player: PlayerRef) {
-        activePages.remove(player)?.close()
+        val p = player.getPlayerComponent() ?: return
+        val ref = player.reference ?: return
+        val store = ref.store
+        activePages.remove(player)
         onClose(player)
     }
 
     fun isOpenFor(player: PlayerRef): Boolean = activePages.containsKey(player)
 
     fun update(player: PlayerRef, block: UICommandDsl.() -> Unit) {
-        activePages[player]?.let { ui ->
-            val builder = UICommandBuilder()
-            builder.dsl(block)
-            ui.update(builder)
-        }
+        val customPage = activePages[player] ?: return
+        val builder = UICommandBuilder()
+        builder.dsl(block)
+        customPage.doSendUpdate(builder)
     }
-
-    fun updateData(player: PlayerRef, updater: (T) -> T) {
-        activePages[player]?.updateData(updater)
-    }
-
-    fun getData(player: PlayerRef): T? = activePages[player]?.data
 
     fun getActivePlayers(): Set<PlayerRef> = activePages.keys.toSet()
 
@@ -77,18 +79,40 @@ abstract class TalePage<T : Any>(
     }
 }
 
-inline fun <reified T : Any> Player.openPage(page: TalePage<T>, data: T) {
-    page.open(this.playerRef, data)
+internal class TaleCustomUIPage(
+    private val playerRef: PlayerRef,
+    private val talePage: TalePage
+) : CustomUIPage(playerRef, CustomPageLifetime.CanDismiss) {
+
+    override fun build(ref: Ref<EntityStore>, builder: UICommandBuilder, eventBuilder: UIEventBuilder, store: Store<EntityStore>) {
+        talePage.onBuild(playerRef, builder, eventBuilder)
+    }
+
+    override fun handleDataEvent(ref: Ref<EntityStore>, store: Store<EntityStore>, rawData: String) {
+        talePage.onEvent(playerRef, rawData)
+    }
+
+    override fun onDismiss(ref: Ref<EntityStore>, store: Store<EntityStore>) {
+        talePage.onClose(playerRef)
+    }
+
+    fun doSendUpdate(builder: UICommandBuilder) {
+        sendUpdate(builder)
+    }
 }
 
-inline fun <reified T : Any> PlayerRef.openPage(page: TalePage<T>, data: T) {
-    page.open(this, data)
+fun Player.openPage(page: TalePage) {
+    page.open(this.playerRef)
 }
 
-fun <T : Any> Player.closePage(page: TalePage<T>) {
+fun PlayerRef.openPage(page: TalePage) {
+    page.open(this)
+}
+
+fun Player.closePage(page: TalePage) {
     page.close(this.playerRef)
 }
 
-fun <T : Any> PlayerRef.closePage(page: TalePage<T>) {
+fun PlayerRef.closePage(page: TalePage) {
     page.close(this)
 }

@@ -3,31 +3,16 @@
 package com.github.ssquadteam.talelib.ui.hud
 
 import com.github.ssquadteam.talelib.ui.command.UICommandDsl
-import com.hypixel.hytale.server.core.ui.HudLayer
-import com.hypixel.hytale.server.core.ui.UICommandBuilder
+import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
 
 class TaleHudBuilder(
     private val id: String,
     private val uiPath: String
 ) {
-    private var layer: HudLayer = HudLayer.DEFAULT
     private var onShowHandler: ((PlayerRef) -> Unit)? = null
     private var onHideHandler: ((PlayerRef) -> Unit)? = null
-    private var onUpdateHandler: ((PlayerRef, UICommandBuilder) -> Unit)? = null
-
-    fun layer(layer: HudLayer): TaleHudBuilder {
-        this.layer = layer
-        return this
-    }
-
-    fun layerBackground(): TaleHudBuilder = layer(HudLayer.BACKGROUND)
-
-    fun layerDefault(): TaleHudBuilder = layer(HudLayer.DEFAULT)
-
-    fun layerForeground(): TaleHudBuilder = layer(HudLayer.FOREGROUND)
-
-    fun layerOverlay(): TaleHudBuilder = layer(HudLayer.OVERLAY)
+    private var onBuildHandler: ((PlayerRef, UICommandBuilder) -> Unit)? = null
 
     fun onShow(handler: (PlayerRef) -> Unit): TaleHudBuilder {
         this.onShowHandler = handler
@@ -39,17 +24,18 @@ class TaleHudBuilder(
         return this
     }
 
-    fun onUpdate(handler: (PlayerRef, UICommandBuilder) -> Unit): TaleHudBuilder {
-        this.onUpdateHandler = handler
+    fun onBuild(handler: (PlayerRef, UICommandBuilder) -> Unit): TaleHudBuilder {
+        this.onBuildHandler = handler
         return this
     }
 
     fun build(): TaleHud {
         val showHandler = onShowHandler
         val hideHandler = onHideHandler
-        val updateHandler = onUpdateHandler
+        val buildHandler = onBuildHandler
+        val path = uiPath
 
-        return object : TaleHud(id, uiPath, layer) {
+        return object : TaleHud(id, path) {
             override fun onShow(player: PlayerRef) {
                 showHandler?.invoke(player)
             }
@@ -58,8 +44,9 @@ class TaleHudBuilder(
                 hideHandler?.invoke(player)
             }
 
-            override fun onUpdate(player: PlayerRef, builder: UICommandBuilder) {
-                updateHandler?.invoke(player, builder)
+            override fun onBuild(player: PlayerRef, builder: UICommandBuilder) {
+                builder.append(path)
+                buildHandler?.invoke(player, builder)
             }
         }
     }
@@ -69,12 +56,8 @@ fun taleHud(id: String, uiPath: String, block: TaleHudBuilder.() -> Unit = {}): 
     return TaleHudBuilder(id, uiPath).apply(block).build()
 }
 
-fun taleHud(id: String, uiPath: String, layer: HudLayer, block: TaleHudBuilder.() -> Unit = {}): TaleHud {
-    return TaleHudBuilder(id, uiPath).layer(layer).apply(block).build()
-}
+class SimpleHud(id: String, uiPath: String) : TaleHud(id, uiPath)
 
-class SimpleHud(id: String, uiPath: String, layer: HudLayer = HudLayer.DEFAULT) : TaleHud(id, uiPath, layer)
-
-fun simpleHud(id: String, uiPath: String, layer: HudLayer = HudLayer.DEFAULT): SimpleHud {
-    return SimpleHud(id, uiPath, layer)
+fun simpleHud(id: String, uiPath: String): SimpleHud {
+    return SimpleHud(id, uiPath)
 }

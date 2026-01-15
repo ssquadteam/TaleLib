@@ -3,11 +3,12 @@ package com.github.ssquadteam.talelib.teleport
 import com.github.ssquadteam.talelib.world.Location
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
 
-class TeleportBuilder(private val player: PlayerRef) {
+class TeleportBuilder(private val playerRef: PlayerRef) {
     private var x: Double = 0.0
     private var y: Double = 0.0
     private var z: Double = 0.0
@@ -33,17 +34,11 @@ class TeleportBuilder(private val player: PlayerRef) {
     }
 
     fun to(target: PlayerRef): TeleportBuilder {
-        val targetPlayer = target.player ?: return this
-        val world = targetPlayer.world ?: return this
-        world.execute {
-            val store = world.entityStore?.store ?: return@execute
-            val transform = store.getComponent(
-                targetPlayer.reference,
-                com.hypixel.hytale.server.core.modules.entity.component.TransformComponent.getComponentType()
-            ) ?: return@execute
-            to(transform.position)
-            facing(transform.rotation.yaw, transform.rotation.pitch)
-        }
+        val targetRef = target.reference ?: return this
+        val store = targetRef.store
+        val transform = store.getComponent(targetRef, TransformComponent.getComponentType()) ?: return this
+        to(transform.position)
+        facing(transform.rotation.yaw, transform.rotation.pitch)
         return this
     }
 
@@ -69,27 +64,23 @@ class TeleportBuilder(private val player: PlayerRef) {
     }
 
     fun execute() {
-        val playerEntity = player.player ?: return
-        val world = targetWorld ?: playerEntity.world ?: return
+        val ref = playerRef.reference ?: return
+        val store = ref.store
 
-        world.execute {
-            val store = world.entityStore?.store ?: return@execute
-
-            var teleport = if (targetWorld != null) {
-                Teleport(targetWorld, Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
-            } else {
-                Teleport(Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
-            }
-
-            if (!resetVelocity) {
-                teleport = teleport.withoutVelocityReset()
-            }
-            if (resetRoll) {
-                teleport = teleport.withResetRoll()
-            }
-
-            store.addComponent(playerEntity.reference, Teleport.getComponentType(), teleport)
+        var teleport = if (targetWorld != null) {
+            Teleport(targetWorld, Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
+        } else {
+            Teleport(Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
         }
+
+        if (!resetVelocity) {
+            teleport = teleport.withoutVelocityReset()
+        }
+        if (resetRoll) {
+            teleport = teleport.withResetRoll()
+        }
+
+        store.putComponent(ref, Teleport.getComponentType(), teleport)
     }
 }
 

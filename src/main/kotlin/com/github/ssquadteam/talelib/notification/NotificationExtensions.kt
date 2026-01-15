@@ -80,14 +80,5 @@ fun PlayerRef.notify(message: Message, secondary: Message?, icon: String?, item:
     )
 }
 
-fun PlayerRef.notifySuccess(message: String) =
-    notify(message.toMessage(), NotificationStyle.Success)
-
-fun PlayerRef.notifyWarning(message: String) =
-    notify(message.toMessage(), NotificationStyle.Warning)
-
-fun PlayerRef.notifyError(message: String) =
-    notify(message.toMessage(), NotificationStyle.Error)
-
-fun PlayerRef.notifyInfo(message: String) =
+fun PlayerRef.notifyDefault(message: String) =
     notify(message.toMessage(), NotificationStyle.Default)

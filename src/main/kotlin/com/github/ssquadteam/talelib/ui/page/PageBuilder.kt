@@ -2,108 +2,77 @@
 
 package com.github.ssquadteam.talelib.ui.page
 
-import com.hypixel.hytale.server.core.ui.interactive.UIInteraction
+import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
+import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
 
-class TalePageBuilder<T : Any>(
+class TalePageBuilder(
     private val id: String,
-    private val uiPath: String,
-    private val dataClass: Class<T>
+    private val uiPath: String
 ) {
-    private var onOpenHandler: ((PlayerRef, T) -> Unit)? = null
+    private var onOpenHandler: ((PlayerRef) -> Unit)? = null
     private var onCloseHandler: ((PlayerRef) -> Unit)? = null
-    private var onInteractionHandler: ((PlayerRef, UIInteraction, T) -> T)? = null
-    private val elementHandlers = mutableMapOf<String, (PlayerRef, UIInteraction, T) -> T>()
-    private val clickHandlers = mutableMapOf<String, (PlayerRef, T) -> T>()
+    private var onBuildHandler: ((PlayerRef, UICommandBuilder, UIEventBuilder) -> Unit)? = null
+    private var onEventHandler: ((PlayerRef, String?) -> Unit)? = null
 
-    fun onOpen(handler: (PlayerRef, T) -> Unit): TalePageBuilder<T> {
+    fun onOpen(handler: (PlayerRef) -> Unit): TalePageBuilder {
         this.onOpenHandler = handler
         return this
     }
 
-    fun onClose(handler: (PlayerRef) -> Unit): TalePageBuilder<T> {
+    fun onClose(handler: (PlayerRef) -> Unit): TalePageBuilder {
         this.onCloseHandler = handler
         return this
     }
 
-    fun onInteraction(handler: (PlayerRef, UIInteraction, T) -> T): TalePageBuilder<T> {
-        this.onInteractionHandler = handler
+    fun onBuild(handler: (PlayerRef, UICommandBuilder, UIEventBuilder) -> Unit): TalePageBuilder {
+        this.onBuildHandler = handler
         return this
     }
 
-    fun onElement(elementId: String, handler: (PlayerRef, UIInteraction, T) -> T): TalePageBuilder<T> {
-        elementHandlers[elementId] = handler
+    fun onEvent(handler: (PlayerRef, String?) -> Unit): TalePageBuilder {
+        this.onEventHandler = handler
         return this
     }
 
-    fun onClick(elementId: String, handler: (PlayerRef, T) -> T): TalePageBuilder<T> {
-        clickHandlers[elementId] = handler
-        return this
-    }
-
-    fun build(): TalePage<T> {
+    fun build(): TalePage {
         val openHandler = onOpenHandler
         val closeHandler = onCloseHandler
-        val interactionHandler = onInteractionHandler
-        val elemHandlers = elementHandlers.toMap()
-        val clkHandlers = clickHandlers.toMap()
+        val buildHandler = onBuildHandler
+        val eventHandler = onEventHandler
+        val path = uiPath
 
-        return object : TalePage<T>(id, uiPath, dataClass) {
-            override fun onOpen(player: PlayerRef, data: T) {
-                openHandler?.invoke(player, data)
+        return object : TalePage(id, path) {
+            override fun onOpen(player: PlayerRef) {
+                openHandler?.invoke(player)
             }
 
             override fun onClose(player: PlayerRef) {
                 closeHandler?.invoke(player)
             }
 
-            override fun onInteraction(player: PlayerRef, interaction: UIInteraction, data: T): T {
-                var result = data
+            override fun onBuild(player: PlayerRef, builder: UICommandBuilder, eventBuilder: UIEventBuilder) {
+                builder.append(path)
+                buildHandler?.invoke(player, builder, eventBuilder)
+            }
 
-                val elementId = interaction.elementId
-                if (elementId != null) {
-                    elemHandlers[elementId]?.let { handler ->
-                        result = handler(player, interaction, result)
-                    }
-
-                    clkHandlers[elementId]?.let { handler ->
-                        result = handler(player, result)
-                    }
-                }
-
-                interactionHandler?.let { handler ->
-                    result = handler(player, interaction, result)
-                }
-
-                return result
+            override fun onEvent(player: PlayerRef, eventData: String?) {
+                eventHandler?.invoke(player, eventData)
             }
         }
     }
 }
 
-inline fun <reified T : Any> talePage(
+fun talePage(
     id: String,
     uiPath: String,
-    noinline block: TalePageBuilder<T>.() -> Unit = {}
-): TalePage<T> {
-    return TalePageBuilder(id, uiPath, T::class.java).apply(block).build()
+    block: TalePageBuilder.() -> Unit = {}
+): TalePage {
+    return TalePageBuilder(id, uiPath).apply(block).build()
 }
 
-class SimplePage<T : Any>(
-    id: String,
-    uiPath: String,
-    dataClass: Class<T>,
-    private val interactionHandler: ((PlayerRef, UIInteraction, T) -> T)? = null
-) : TalePage<T>(id, uiPath, dataClass) {
-    override fun onInteraction(player: PlayerRef, interaction: UIInteraction, data: T): T {
-        return interactionHandler?.invoke(player, interaction, data) ?: data
-    }
-}
+class SimplePage(id: String, uiPath: String) : TalePage(id, uiPath)
 
-inline fun <reified T : Any> simplePage(
-    id: String,
-    uiPath: String,
-    noinline interactionHandler: ((PlayerRef, UIInteraction, T) -> T)? = null
-): SimplePage<T> {
-    return SimplePage(id, uiPath, T::class.java, interactionHandler)
+fun simplePage(id: String, uiPath: String): SimplePage {
+    return SimplePage(id, uiPath)
 }

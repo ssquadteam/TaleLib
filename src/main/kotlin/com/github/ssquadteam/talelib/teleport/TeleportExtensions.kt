@@ -5,18 +5,17 @@ package com.github.ssquadteam.talelib.teleport
 import com.github.ssquadteam.talelib.world.Location
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 fun PlayerRef.teleport(x: Double, y: Double, z: Double, yaw: Float = 0f, pitch: Float = 0f) {
-    val player = this.player ?: return
-    val world = player.world ?: return
-    world.execute {
-        val store = world.entityStore?.store ?: return@execute
-        val teleportComponent = Teleport(Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
-        store.addComponent(player.reference, Teleport.getComponentType(), teleportComponent)
-    }
+    val ref = this.reference ?: return
+    val store = ref.store
+    val teleport = Teleport(Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
+    store.putComponent(ref, Teleport.getComponentType(), teleport)
 }
 
 fun PlayerRef.teleport(position: Vector3d, rotation: Vector3f? = null) {
@@ -40,37 +39,23 @@ fun PlayerRef.teleport(location: Location) {
 }
 
 fun PlayerRef.teleportTo(other: PlayerRef) {
-    val otherPlayer = other.player ?: return
-    val world = otherPlayer.world ?: return
-    world.execute {
-        val store = world.entityStore?.store ?: return@execute
-        val transform = store.getComponent(
-            otherPlayer.reference,
-            com.hypixel.hytale.server.core.modules.entity.component.TransformComponent.getComponentType()
-        ) ?: return@execute
-        teleport(transform.position, transform.rotation)
-    }
+    val otherRef = other.reference ?: return
+    val store = otherRef.store
+    val transform = store.getComponent(otherRef, TransformComponent.getComponentType()) ?: return
+    teleport(transform.position, transform.rotation)
 }
 
 fun PlayerRef.teleportToWorld(targetWorld: World, x: Double, y: Double, z: Double, yaw: Float = 0f, pitch: Float = 0f) {
-    val player = this.player ?: return
-    targetWorld.execute {
-        val store = targetWorld.entityStore?.store ?: return@execute
-        val teleportComponent = Teleport(targetWorld, Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
-        store.addComponent(player.reference, Teleport.getComponentType(), teleportComponent)
-    }
+    val ref = this.reference ?: return
+    val store = ref.store
+    val teleport = Teleport(targetWorld, Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
+    store.putComponent(ref, Teleport.getComponentType(), teleport)
 }
 
 fun PlayerRef.teleportRelative(dx: Double = 0.0, dy: Double = 0.0, dz: Double = 0.0) {
-    val player = this.player ?: return
-    val world = player.world ?: return
-    world.execute {
-        val store = world.entityStore?.store ?: return@execute
-        val transform = store.getComponent(
-            player.reference,
-            com.hypixel.hytale.server.core.modules.entity.component.TransformComponent.getComponentType()
-        ) ?: return@execute
-        val pos = transform.position
-        teleport(pos.x + dx, pos.y + dy, pos.z + dz)
-    }
+    val ref = this.reference ?: return
+    val store = ref.store
+    val transform = store.getComponent(ref, TransformComponent.getComponentType()) ?: return
+    val pos = transform.position
+    teleport(pos.x + dx, pos.y + dy, pos.z + dz)
 }

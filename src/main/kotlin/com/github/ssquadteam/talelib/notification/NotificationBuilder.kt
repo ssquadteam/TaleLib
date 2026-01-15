@@ -53,18 +53,8 @@ class NotificationBuilder {
         return this
     }
 
-    fun success(): NotificationBuilder {
-        style = NotificationStyle.Success
-        return this
-    }
-
-    fun warning(): NotificationBuilder {
-        style = NotificationStyle.Warning
-        return this
-    }
-
-    fun error(): NotificationBuilder {
-        style = NotificationStyle.Error
+    fun defaultStyle(): NotificationBuilder {
+        style = NotificationStyle.Default
         return this
     }
 

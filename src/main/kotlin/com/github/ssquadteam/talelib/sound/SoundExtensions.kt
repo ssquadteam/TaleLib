@@ -5,7 +5,6 @@ package com.github.ssquadteam.talelib.sound
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.protocol.SoundCategory
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent
-import com.hypixel.hytale.server.core.modules.entity.EntityModule
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.SoundUtil
@@ -35,20 +34,9 @@ fun PlayerRef.playSound3d(
 ) {
     val index = soundIndex(soundId)
     if (index == 0) return
-    val player = this.player ?: return
-    val world = player.world ?: return
-    val store = world.entityStore?.store ?: return
-    SoundUtil.playSoundEvent3dToPlayer(
-        player.reference,
-        index,
-        category,
-        x,
-        y,
-        z,
-        volume,
-        pitch,
-        store
-    )
+    val ref = this.reference ?: return
+    val store = ref.store
+    SoundUtil.playSoundEvent3dToPlayer(ref, index, category, x, y, z, volume, pitch, store)
 }
 
 fun PlayerRef.playSound3d(
@@ -65,10 +53,9 @@ fun PlayerRef.playSoundAtSelf(
     volume: Float = 1f,
     pitch: Float = 1f
 ) {
-    val player = this.player ?: return
-    val world = player.world ?: return
-    val store = world.entityStore?.store ?: return
-    val transform = store.getComponent(player.reference, TransformComponent.getComponentType()) ?: return
+    val ref = this.reference ?: return
+    val store = ref.store
+    val transform = store.getComponent(ref, TransformComponent.getComponentType()) ?: return
     val pos = transform.position
     playSound3d(soundId, pos.x, pos.y, pos.z, category, volume, pitch)
 }
@@ -78,9 +65,6 @@ fun PlayerRef.playUISound(soundId: String, volume: Float = 1f, pitch: Float = 1f
 
 fun PlayerRef.playMusicSound(soundId: String, volume: Float = 1f, pitch: Float = 1f) =
     playSound2d(soundId, SoundCategory.Music, volume, pitch)
-
-fun PlayerRef.playAmbientSound(soundId: String, volume: Float = 1f, pitch: Float = 1f) =
-    playSound2d(soundId, SoundCategory.Ambient, volume, pitch)
 
 fun PlayerRef.playSFXSound(soundId: String, volume: Float = 1f, pitch: Float = 1f) =
     playSound2d(soundId, SoundCategory.SFX, volume, pitch)
