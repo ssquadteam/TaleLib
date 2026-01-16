@@ -2,34 +2,71 @@
 
 package com.github.ssquadteam.talelib.ui.element
 
+/**
+ * Reference to a UI element for property access.
+ *
+ * Hytale UI selectors:
+ * - Element IDs use # prefix: #title, #myButton
+ * - Properties use capital letters: Text, Value, Visible
+ * - Full selector: #elementId.PropertyName
+ */
 @JvmInline
-value class ElementRef(val id: String) {
-    val text: String get() = "$id.text"
-    val value: String get() = "$id.value"
-    val visible: String get() = "$id.visible"
-    val enabled: String get() = "$id.enabled"
-    val progress: String get() = "$id.progress"
-    val maxProgress: String get() = "$id.maxProgress"
-    val color: String get() = "$id.color"
-    val alpha: String get() = "$id.alpha"
-    val icon: String get() = "$id.icon"
-    val image: String get() = "$id.image"
+value class ElementRef(val selector: String) {
+    // Common properties (capital letters to match Hytale UI)
+    val Text: String get() = "$selector.Text"
+    val Value: String get() = "$selector.Value"
+    val Visible: String get() = "$selector.Visible"
+    val Enabled: String get() = "$selector.Enabled"
+    val Progress: String get() = "$selector.Progress"
+    val MaxProgress: String get() = "$selector.MaxProgress"
+    val Color: String get() = "$selector.Color"
+    val Alpha: String get() = "$selector.Alpha"
+    val Icon: String get() = "$selector.Icon"
+    val Image: String get() = "$selector.Image"
 
-    fun property(name: String): String = "$id.$name"
+    /**
+     * Access a custom property by name
+     */
+    fun property(name: String): String = "$selector.$name"
 
-    fun child(childId: String): ElementRef = ElementRef("$id.$childId")
+    /**
+     * Get a child element reference
+     */
+    fun child(childId: String): ElementRef = ElementRef("$selector.$childId")
 
-    override fun toString(): String = id
+    /**
+     * Get element at index (for list containers)
+     */
+    operator fun get(index: Int): ElementRef = ElementRef("$selector[$index]")
+
+    override fun toString(): String = selector
 }
 
-fun element(id: String): ElementRef = ElementRef(id)
+/**
+ * Create an element reference with # prefix
+ */
+fun element(id: String): ElementRef = ElementRef("#$id")
 
-fun element(parent: String, child: String): ElementRef = ElementRef("$parent.$child")
+/**
+ * Create a nested element reference
+ */
+fun element(parent: String, child: String): ElementRef = ElementRef("#$parent.$child")
+
+/**
+ * Create an element reference from raw selector (no # prefix added)
+ */
+fun rawElement(selector: String): ElementRef = ElementRef(selector)
 
 object Elements {
     val ROOT = ElementRef("root")
 
-    fun list(id: String, index: Int): ElementRef = ElementRef("$id[$index]")
+    /**
+     * Get element at index in a list container
+     */
+    fun list(id: String, index: Int): ElementRef = ElementRef("#$id[$index]")
 
-    fun dynamicList(id: String): String = "$id[]"
+    /**
+     * Dynamic list selector for appending
+     */
+    fun dynamicList(id: String): String = "#$id[]"
 }
