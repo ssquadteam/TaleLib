@@ -3,7 +3,7 @@ package com.github.ssquadteam.talelib.damage
 import com.hypixel.hytale.server.core.modules.entity.knockback.ChangeVelocityType
 import com.hypixel.hytale.server.core.modules.entity.knockback.KnockbackComponent
 import com.hypixel.hytale.server.core.modules.entity.knockback.VelocityConfig
-import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Vector3d
 
 /**
  * DSL builder for creating knockback configurations.

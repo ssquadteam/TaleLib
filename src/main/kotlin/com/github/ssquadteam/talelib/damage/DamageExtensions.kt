@@ -1,12 +1,12 @@
 package com.github.ssquadteam.talelib.damage
 
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Ref
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 /**
  * Extension functions for applying damage to entities.
@@ -34,23 +34,27 @@ fun Ref<EntityStore>.damageFrom(world: World, attacker: Ref<EntityStore>, amount
 }
 
 fun PlayerRef.damage(block: DamageBuilder.() -> Unit) {
-    val world = this.world ?: return
-    this.ref.damage(world, block)
+    val ref = this.reference ?: return
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return
+    ref.damage(world, block)
 }
 
 fun PlayerRef.damage(amount: Float, cause: DamageCause = DamageCause.COMMAND) {
-    val world = this.world ?: return
-    this.ref.damage(world, amount, cause)
+    val ref = this.reference ?: return
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return
+    ref.damage(world, amount, cause)
 }
 
 fun PlayerRef.damageFrom(attacker: Ref<EntityStore>, amount: Float, cause: DamageCause = DamageCause.COMMAND) {
-    val world = this.world ?: return
-    this.ref.damageFrom(world, attacker, amount, cause)
+    val ref = this.reference ?: return
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return
+    ref.damageFrom(world, attacker, amount, cause)
 }
 
 fun PlayerRef.damageFrom(attacker: PlayerRef, amount: Float, cause: DamageCause = DamageCause.COMMAND) {
-    val world = this.world ?: return
-    this.ref.damageFrom(world, attacker.ref, amount, cause)
+    val ref = this.reference ?: return
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return
+    ref.damageFrom(world, attacker.reference, amount, cause)
 }
 
 fun PlayerRef.damageWithKnockback(
@@ -74,16 +78,17 @@ fun PlayerRef.damageWithKnockbackFrom(
     verticalForce: Double = 0.3,
     cause: DamageCause = DamageCause.COMMAND
 ) {
-    val world = this.world ?: return
-    val attackerPos = attacker.position ?: return
-    val targetPos = this.position ?: return
+    val ref = this.reference ?: return
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return
+    val attackerTransform = attacker.transform
+    val targetTransform = this.transform
 
-    this.ref.damage(world) {
+    ref.damage(world) {
         amount(amount)
         cause(cause)
         fromPlayer(attacker)
         knockback {
-            awayFrom(attackerPos.x, attackerPos.z, targetPos.x, targetPos.z, knockbackForce, verticalForce)
+            awayFrom(attackerTransform.x, attackerTransform.z, targetTransform.x, targetTransform.z, knockbackForce, verticalForce)
         }
     }
 }

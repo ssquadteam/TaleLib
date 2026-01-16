@@ -1,17 +1,17 @@
 package com.github.ssquadteam.talelib.prefab
 
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.Rotation
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.math.vector.Vector3i
 import com.hypixel.hytale.server.core.prefab.PrefabRotation
 import com.hypixel.hytale.server.core.prefab.PrefabStore
 import com.hypixel.hytale.server.core.prefab.PrefabWeights
 import com.hypixel.hytale.server.core.prefab.selection.buffer.PrefabBufferUtil
 import com.hypixel.hytale.server.core.prefab.selection.buffer.impl.IPrefabBuffer
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.util.PrefabUtil
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Ref
-import org.joml.Vector3i
 import java.nio.file.Path
 import java.util.Random
 

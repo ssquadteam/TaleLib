@@ -1,13 +1,13 @@
 package com.github.ssquadteam.talelib.projectile
 
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.math.vector.Vector3d
+import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule
 import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Ref
-import org.joml.Vector3d
-import org.joml.Vector3f
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import java.util.UUID
 
 /**
@@ -73,7 +73,7 @@ class ProjectileBuilder {
     }
 
     fun creator(player: PlayerRef): ProjectileBuilder {
-        this.creatorRef = player.ref
+        this.creatorRef = player.reference
         return this
     }
 

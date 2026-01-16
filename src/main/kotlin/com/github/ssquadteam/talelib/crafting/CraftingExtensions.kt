@@ -4,16 +4,16 @@ import com.hypixel.hytale.builtin.crafting.CraftingPlugin
 import com.hypixel.hytale.protocol.BenchType
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.bench.Bench
 import com.hypixel.hytale.server.core.asset.type.item.config.CraftingRecipe
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.ecs.Ref
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 // ============================================
 // Player Recipe Extensions
 // ============================================
 
 fun PlayerRef.learnRecipe(recipeId: String): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     if (!ref.isValid) return false
     return try {
         CraftingPlugin.learnRecipe(ref, recipeId, ref.store)
@@ -23,7 +23,7 @@ fun PlayerRef.learnRecipe(recipeId: String): Boolean {
 }
 
 fun PlayerRef.forgetRecipe(recipeId: String): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     if (!ref.isValid) return false
     return try {
         CraftingPlugin.forgetRecipe(ref, recipeId, ref.store)
@@ -33,7 +33,7 @@ fun PlayerRef.forgetRecipe(recipeId: String): Boolean {
 }
 
 fun PlayerRef.sendKnownRecipes(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     if (!ref.isValid) return false
     return try {
         CraftingPlugin.sendKnownRecipes(ref, ref.store)

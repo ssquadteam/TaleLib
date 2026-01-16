@@ -1,12 +1,12 @@
 package com.github.ssquadteam.talelib.projectile
 
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.server.core.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Ref
-import org.joml.Vector3d
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 /**
  * Extension functions for projectile spawning.
@@ -19,7 +19,7 @@ import org.joml.Vector3d
 
 fun PlayerRef.shootProjectile(configId: String, velocityMultiplier: Double = 1.0): Ref<EntityStore>? {
     val world = this.world ?: return null
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     val pos = getEyePosition() ?: return null
     val dir = getLookDirection() ?: return null
 
@@ -34,7 +34,7 @@ fun PlayerRef.shootProjectile(configId: String, velocityMultiplier: Double = 1.0
 
 fun PlayerRef.shootProjectile(block: ProjectileBuilder.() -> Unit): Ref<EntityStore>? {
     val world = this.world ?: return null
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     val pos = getEyePosition() ?: return null
     val dir = getLookDirection() ?: return null
 
@@ -54,7 +54,7 @@ fun PlayerRef.shootProjectileAt(
     velocityMultiplier: Double = 1.0
 ): Ref<EntityStore>? {
     val world = this.world ?: return null
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     val pos = getEyePosition() ?: return null
 
     val direction = Vector3d(targetX - pos.x, targetY - pos.y, targetZ - pos.z).normalize()
@@ -83,7 +83,7 @@ fun PlayerRef.getEyePosition(): Vector3d? {
 }
 
 fun PlayerRef.getLookDirection(): Vector3d? {
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     if (!ref.isValid) return null
 
     val store = ref.store

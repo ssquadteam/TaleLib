@@ -1,15 +1,15 @@
 package com.github.ssquadteam.talelib.spawn
 
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.Transform
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.math.vector.Vector3d
+import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.spawn.GlobalSpawnProvider
 import com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider
 import com.hypixel.hytale.server.core.universe.world.spawn.IndividualSpawnProvider
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Ref
-import org.joml.Vector3d
-import org.joml.Vector3f
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import java.util.UUID
 
 // ============================================

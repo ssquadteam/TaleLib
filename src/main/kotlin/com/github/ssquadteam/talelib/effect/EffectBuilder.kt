@@ -1,12 +1,12 @@
 package com.github.ssquadteam.talelib.effect
 
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior
-import com.hypixel.hytale.server.core.entity.EntityStore
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent
 import com.hypixel.hytale.server.core.entity.effect.RemovalBehavior
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.ecs.Ref
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 /**
  * DSL builder for applying effects to entities.
@@ -100,7 +100,7 @@ class EffectBuilder {
     }
 
     fun applyTo(player: PlayerRef): Boolean {
-        val ref = player.ref ?: return false
+        val ref = player.reference ?: return false
         return applyTo(ref)
     }
 
@@ -196,7 +196,7 @@ class EffectRemovalBuilder {
     }
 
     fun removeFrom(player: PlayerRef): Boolean {
-        val ref = player.ref ?: return false
+        val ref = player.reference ?: return false
         return removeFrom(ref)
     }
 }

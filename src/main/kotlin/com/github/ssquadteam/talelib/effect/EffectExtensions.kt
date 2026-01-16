@@ -1,13 +1,13 @@
 package com.github.ssquadteam.talelib.effect
 
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior
-import com.hypixel.hytale.server.core.entity.EntityStore
 import com.hypixel.hytale.server.core.entity.effect.ActiveEntityEffect
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent
 import com.hypixel.hytale.server.core.entity.effect.RemovalBehavior
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.ecs.Ref
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 /**
  * Extension functions for effect management.
@@ -48,7 +48,7 @@ fun PlayerRef.clearEffects(): Boolean {
 }
 
 fun PlayerRef.hasEffect(effectId: String): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     if (!ref.isValid) return false
 
     val store = ref.store
@@ -67,7 +67,7 @@ fun PlayerRef.hasEffect(effectId: String): Boolean {
 }
 
 fun PlayerRef.getEffectDuration(effectId: String): Float? {
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     if (!ref.isValid) return null
 
     val store = ref.store
@@ -87,7 +87,7 @@ fun PlayerRef.getEffectDuration(effectId: String): Float? {
 }
 
 fun PlayerRef.getActiveEffects(): List<TaleActiveEffect> {
-    val ref = this.ref ?: return emptyList()
+    val ref = this.reference ?: return emptyList()
     if (!ref.isValid) return emptyList()
 
     val store = ref.store
@@ -98,7 +98,7 @@ fun PlayerRef.getActiveEffects(): List<TaleActiveEffect> {
 }
 
 fun PlayerRef.getActiveEffectCount(): Int {
-    val ref = this.ref ?: return 0
+    val ref = this.reference ?: return 0
     if (!ref.isValid) return 0
 
     val store = ref.store
@@ -117,7 +117,7 @@ fun PlayerRef.hasDebuffs(): Boolean {
 }
 
 fun PlayerRef.isInvulnerableFromEffects(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     if (!ref.isValid) return false
 
     val store = ref.store
@@ -131,7 +131,7 @@ fun PlayerRef.clearDebuffs(): Int {
     val debuffs = getActiveEffects().filter { it.isDebuff }
     var removed = 0
     debuffs.forEach { effect ->
-        val ref = this.ref ?: return removed
+        val ref = this.reference ?: return removed
         val store = ref.store
         val controller = store.getComponent(ref, EffectControllerComponent.getComponentType())
             ?: return removed
@@ -145,7 +145,7 @@ fun PlayerRef.clearBuffs(): Int {
     val buffs = getActiveEffects().filter { !it.isDebuff }
     var removed = 0
     buffs.forEach { effect ->
-        val ref = this.ref ?: return removed
+        val ref = this.reference ?: return removed
         val store = ref.store
         val controller = store.getComponent(ref, EffectControllerComponent.getComponentType())
             ?: return removed

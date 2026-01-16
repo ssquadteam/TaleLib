@@ -4,8 +4,8 @@ import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealth
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthChunk
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthModule
 import com.hypixel.hytale.server.core.universe.world.chunk.ChunkUtil
-import com.hypixel.hytale.server.core.world.World
-import org.joml.Vector3i
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.math.vector.Vector3i
 import java.time.Instant
 
 // ============================================

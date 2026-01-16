@@ -1,17 +1,17 @@
 package com.github.ssquadteam.talelib.npc
 
+import com.hypixel.hytale.component.Holder
+import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.function.consumer.TriConsumer
+import com.hypixel.hytale.math.vector.Vector3d
+import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
-import com.hypixel.hytale.server.core.entity.EntityStore
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Holder
-import com.hypixel.hytale.server.ecs.Ref
-import com.hypixel.hytale.server.ecs.Store
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.npc.NPCPlugin
 import com.hypixel.hytale.server.npc.entities.NPCEntity
 import it.unimi.dsi.fastutil.Pair
-import org.joml.Vector3d
-import org.joml.Vector3f
 
 // ============================================
 // NPC Builder

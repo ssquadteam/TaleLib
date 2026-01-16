@@ -1,19 +1,19 @@
 package com.github.ssquadteam.talelib.stamina
 
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.protocol.MovementStates
-import com.hypixel.hytale.server.core.entity.EntityStore
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.ecs.Ref
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 // ============================================
 // Movement State Extensions
 // ============================================
 
 fun PlayerRef.getMovementStates(): MovementStates? {
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     return ref.getMovementStates()
 }
 
@@ -120,7 +120,7 @@ fun Ref<EntityStore>.isMantling(): Boolean {
 // ============================================
 
 fun PlayerRef.isStaminaDepleted(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.isStaminaDepleted()
 }
 
@@ -132,7 +132,7 @@ fun Ref<EntityStore>.isStaminaDepleted(): Boolean {
 }
 
 fun PlayerRef.isStaminaFull(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.isStaminaFull()
 }
 
@@ -144,7 +144,7 @@ fun Ref<EntityStore>.isStaminaFull(): Boolean {
 }
 
 fun PlayerRef.isStaminaCritical(threshold: Float = 0.1f): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.isStaminaCritical(threshold)
 }
 
@@ -182,7 +182,7 @@ object StaminaCost {
 // ============================================
 
 fun PlayerRef.canSprint(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.canSprint()
 }
 
@@ -194,7 +194,7 @@ fun Ref<EntityStore>.canSprint(): Boolean {
 }
 
 fun PlayerRef.canJump(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.canJump()
 }
 
@@ -206,7 +206,7 @@ fun Ref<EntityStore>.canJump(): Boolean {
 }
 
 fun PlayerRef.canRoll(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.canRoll()
 }
 
@@ -222,17 +222,17 @@ fun Ref<EntityStore>.canRoll(): Boolean {
 // ============================================
 
 fun PlayerRef.drainStaminaForSprint(deltaTime: Float): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.drainStamina(StaminaCost.SPRINT_COST_PER_SECOND * deltaTime)
 }
 
 fun PlayerRef.drainStaminaForJump(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.drainStamina(StaminaCost.JUMP_COST)
 }
 
 fun PlayerRef.drainStaminaForRoll(): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.drainStamina(StaminaCost.ROLL_COST)
 }
 
@@ -246,7 +246,7 @@ fun Ref<EntityStore>.drainStamina(amount: Float): Boolean {
 }
 
 fun PlayerRef.drainStamina(amount: Float): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.drainStamina(amount)
 }
 
@@ -258,7 +258,7 @@ fun Ref<EntityStore>.restoreStamina(amount: Float): Boolean {
 }
 
 fun PlayerRef.restoreStamina(amount: Float): Boolean {
-    val ref = this.ref ?: return false
+    val ref = this.reference ?: return false
     return ref.restoreStamina(amount)
 }
 

@@ -1,14 +1,14 @@
 package com.github.ssquadteam.talelib.damage
 
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.component.Store
+import com.hypixel.hytale.math.vector.Vector4d
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageSystems
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Ref
-import com.hypixel.hytale.server.ecs.universe.Store
-import org.joml.Vector4d
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 /**
  * DSL builder for creating and applying damage.
@@ -82,7 +82,7 @@ class DamageBuilder {
     }
 
     fun fromPlayer(player: PlayerRef): DamageBuilder {
-        this.source = Damage.EntitySource(player.ref)
+        this.source = Damage.EntitySource(player.reference)
         return this
     }
 

@@ -1,14 +1,14 @@
 package com.github.ssquadteam.talelib.collision
 
-import com.hypixel.hytale.math.Box
+import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.math.shape.Box
+import com.hypixel.hytale.math.vector.Vector2d
+import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.protocol.CollisionType
-import com.hypixel.hytale.server.core.entity.EntityStore
 import com.hypixel.hytale.server.core.modules.collision.*
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.core.world.World
-import com.hypixel.hytale.server.ecs.Ref
-import org.joml.Vector2d
-import org.joml.Vector3d
+import com.hypixel.hytale.server.core.universe.world.World
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 // ============================================
 // Collision Material Constants
@@ -95,9 +95,11 @@ fun PlayerRef.raycastFromEyes(
     maxDistance: Double,
     materials: Int = CollisionMaterials.SOLID
 ): RaycastResult? {
-    val world = this.world ?: return null
-    val pos = this.position ?: return null
-    val eyePos = Vector3d(pos.x, pos.y + 1.62, pos.z)
+    val ref = this.reference ?: return null
+    if (!ref.isValid) return null
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return null
+    val transform = this.transform
+    val eyePos = Vector3d(transform.x, transform.y + 1.62, transform.z)
     val direction = getLookDirection() ?: return null
     return world.raycast(eyePos, direction, maxDistance, materials)
 }
@@ -111,15 +113,12 @@ fun PlayerRef.getTargetFluid(maxDistance: Double = 5.0): RaycastResult? {
 }
 
 private fun PlayerRef.getLookDirection(): Vector3d? {
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     if (!ref.isValid) return null
 
-    val store = ref.store
-    val transform = store.getComponent(ref, com.hypixel.hytale.server.core.entity.component.TransformComponent.getComponentType()) ?: return null
-    val rotation = transform.rotation ?: return null
-
-    val yaw = rotation.y
-    val pitch = rotation.x
+    val headRot = this.headRotation
+    val yaw = headRot.y
+    val pitch = headRot.x
 
     val yawRad = Math.toRadians(yaw.toDouble())
     val pitchRad = Math.toRadians(pitch.toDouble())
