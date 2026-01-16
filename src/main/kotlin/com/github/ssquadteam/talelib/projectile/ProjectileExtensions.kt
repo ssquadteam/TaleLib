@@ -1,8 +1,9 @@
 package com.github.ssquadteam.talelib.projectile
 
+import com.hypixel.hytale.component.CommandBuffer
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.server.core.entity.component.TransformComponent
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
@@ -17,13 +18,20 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 // Player Projectile Extensions
 // ============================================
 
-fun PlayerRef.shootProjectile(configId: String, velocityMultiplier: Double = 1.0): Ref<EntityStore>? {
-    val world = this.world ?: return null
+/**
+ * Shoots a projectile from the player's eye position in their look direction.
+ * Must be called from within a system context where a CommandBuffer is available.
+ */
+fun PlayerRef.shootProjectile(
+    commandBuffer: CommandBuffer<EntityStore>,
+    configId: String,
+    velocityMultiplier: Double = 1.0
+): Ref<EntityStore>? {
     val ref = this.reference ?: return null
     val pos = getEyePosition() ?: return null
     val dir = getLookDirection() ?: return null
 
-    return world.spawnProjectile {
+    return commandBuffer.spawnProjectile {
         config(configId)
         position(pos)
         direction(dir)
@@ -32,13 +40,19 @@ fun PlayerRef.shootProjectile(configId: String, velocityMultiplier: Double = 1.0
     }
 }
 
-fun PlayerRef.shootProjectile(block: ProjectileBuilder.() -> Unit): Ref<EntityStore>? {
-    val world = this.world ?: return null
+/**
+ * Shoots a projectile with custom configuration from the player.
+ * Must be called from within a system context where a CommandBuffer is available.
+ */
+fun PlayerRef.shootProjectile(
+    commandBuffer: CommandBuffer<EntityStore>,
+    block: ProjectileBuilder.() -> Unit
+): Ref<EntityStore>? {
     val ref = this.reference ?: return null
     val pos = getEyePosition() ?: return null
     val dir = getLookDirection() ?: return null
 
-    return world.spawnProjectile {
+    return commandBuffer.spawnProjectile {
         position(pos)
         direction(dir)
         creator(ref)
@@ -46,20 +60,24 @@ fun PlayerRef.shootProjectile(block: ProjectileBuilder.() -> Unit): Ref<EntitySt
     }
 }
 
+/**
+ * Shoots a projectile at a specific target position.
+ * Must be called from within a system context where a CommandBuffer is available.
+ */
 fun PlayerRef.shootProjectileAt(
+    commandBuffer: CommandBuffer<EntityStore>,
     configId: String,
     targetX: Double,
     targetY: Double,
     targetZ: Double,
     velocityMultiplier: Double = 1.0
 ): Ref<EntityStore>? {
-    val world = this.world ?: return null
     val ref = this.reference ?: return null
     val pos = getEyePosition() ?: return null
 
     val direction = Vector3d(targetX - pos.x, targetY - pos.y, targetZ - pos.z).normalize()
 
-    return world.spawnProjectile {
+    return commandBuffer.spawnProjectile {
         config(configId)
         position(pos)
         direction(direction)
@@ -68,17 +86,22 @@ fun PlayerRef.shootProjectileAt(
     }
 }
 
+/**
+ * Shoots a projectile at another player.
+ * Must be called from within a system context where a CommandBuffer is available.
+ */
 fun PlayerRef.shootProjectileAt(
+    commandBuffer: CommandBuffer<EntityStore>,
     configId: String,
     target: PlayerRef,
     velocityMultiplier: Double = 1.0
 ): Ref<EntityStore>? {
-    val targetPos = target.position ?: return null
-    return shootProjectileAt(configId, targetPos.x, targetPos.y + 1.0, targetPos.z, velocityMultiplier)
+    val targetPos = target.transform.position ?: return null
+    return shootProjectileAt(commandBuffer, configId, targetPos.x, targetPos.y + 1.0, targetPos.z, velocityMultiplier)
 }
 
 fun PlayerRef.getEyePosition(): Vector3d? {
-    val pos = this.position ?: return null
+    val pos = this.transform.position ?: return null
     return Vector3d(pos.x, pos.y + 1.62, pos.z)
 }
 
@@ -119,9 +142,11 @@ fun projectileConfigExists(configId: String): Boolean {
     return getProjectileConfig(configId) != null
 }
 
+@Suppress("UNCHECKED_CAST")
 fun getAllProjectileConfigIds(): List<String> {
     return try {
-        ProjectileConfig.getAssetMap().keys.toList()
+        val map = ProjectileConfig.getAssetMap().getAssetMap() as Map<String, Any>
+        map.keys.toList()
     } catch (e: Exception) {
         emptyList()
     }

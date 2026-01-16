@@ -1,9 +1,10 @@
 package com.github.ssquadteam.talelib.spawn
 
 import com.hypixel.hytale.component.Ref
-import com.hypixel.hytale.math.Transform
+import com.hypixel.hytale.math.vector.Transform
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.spawn.GlobalSpawnProvider
@@ -11,6 +12,15 @@ import com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider
 import com.hypixel.hytale.server.core.universe.world.spawn.IndividualSpawnProvider
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import java.util.UUID
+
+// ============================================
+// PlayerRef Helper Extensions
+// ============================================
+
+private fun PlayerRef.getWorld(): World? {
+    val ref = this.reference ?: return null
+    return (ref.store.externalData as? EntityStore)?.world
+}
 
 // ============================================
 // World Spawn Extensions
@@ -90,7 +100,7 @@ fun World.isNearSpawn(position: Vector3d, distance: Double): Boolean {
 // ============================================
 
 fun PlayerRef.getSpawnPoint(): Transform? {
-    val world = this.world ?: return null
+    val world = getWorld() ?: return null
     val uuid = this.uuid ?: return null
     return world.getSpawnPoint(uuid)
 }
@@ -100,16 +110,16 @@ fun PlayerRef.getSpawnPosition(): Vector3d? {
 }
 
 fun PlayerRef.teleportToSpawn(): Boolean {
-    val world = this.world ?: return false
-    val ref = this.ref ?: return false
+    val world = getWorld() ?: return false
+    val ref = this.reference ?: return false
     val spawnPoint = getSpawnPoint() ?: return false
 
     return try {
         val store = ref.store
-        val transform = store.getComponent(ref, com.hypixel.hytale.server.core.entity.component.TransformComponent.getComponentType())
+        val transform = store.getComponent(ref, TransformComponent.getComponentType())
         if (transform != null) {
-            transform.position.set(spawnPoint.position)
-            transform.rotation.set(spawnPoint.rotation)
+            transform.position.assign(spawnPoint.position)
+            transform.rotation.assign(spawnPoint.rotation)
             true
         } else false
     } catch (e: Exception) {
@@ -118,8 +128,8 @@ fun PlayerRef.teleportToSpawn(): Boolean {
 }
 
 fun PlayerRef.isNearSpawn(distance: Double): Boolean {
-    val world = this.world ?: return false
-    val pos = this.position ?: return false
+    val world = getWorld() ?: return false
+    val pos = this.transform.position ?: return false
     return world.isNearSpawn(pos.x, pos.y, pos.z, distance)
 }
 
@@ -283,7 +293,7 @@ fun World.getSpawnInfo(playerUuid: UUID): SpawnInfo? {
 }
 
 fun PlayerRef.getSpawnInfo(): SpawnInfo? {
-    val world = this.world ?: return null
+    val world = getWorld() ?: return null
     val uuid = this.uuid ?: return null
     return world.getSpawnInfo(uuid)
 }
@@ -298,5 +308,5 @@ fun createTransform(x: Double, y: Double, z: Double, yaw: Float = 0f, pitch: Flo
 
 fun distanceToSpawn(world: World, playerUuid: UUID, position: Vector3d): Double? {
     val spawnPos = world.getSpawnPosition(playerUuid) ?: return null
-    return spawnPos.distance(position)
+    return spawnPos.distanceTo(position)
 }

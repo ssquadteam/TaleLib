@@ -35,7 +35,7 @@ fun World.raycast(
     materials: Int = CollisionMaterials.SOLID
 ): RaycastResult? {
     val pointBox = Box(0.0, 0.0, 0.0, 0.01, 0.01, 0.01)
-    val ray = Vector3d(direction).normalize().mul(maxDistance)
+    val ray = Vector3d(direction).normalize().scale(maxDistance)
 
     val result = CollisionResult(false, false)
     result.setCollisionByMaterial(materials)
@@ -55,7 +55,7 @@ fun World.raycast(
                 blockY = collision.y,
                 blockZ = collision.z,
                 blockId = collision.blockId,
-                distance = collision.collisionVectorScale * maxDistance
+                distance = collision.collisionStart * maxDistance
             )
         } else null
     } catch (e: Exception) {
@@ -99,7 +99,8 @@ fun PlayerRef.raycastFromEyes(
     if (!ref.isValid) return null
     val world = (ref.store.externalData as? EntityStore)?.world ?: return null
     val transform = this.transform
-    val eyePos = Vector3d(transform.x, transform.y + 1.62, transform.z)
+    val pos = transform.position
+    val eyePos = Vector3d(pos.x, pos.y + 1.62, pos.z)
     val direction = getLookDirection() ?: return null
     return world.raycast(eyePos, direction, maxDistance, materials)
 }
@@ -278,10 +279,13 @@ fun World.findEntityCollisions(
         CollisionModule.findCharacterCollisions(position, movement, result, this.entityStore.store)
 
         val collisions = mutableListOf<EntityCollisionInfo>()
-        for (i in 0 until result.characterCollisionCount) {
-            val collision = result.getCharacterCollision(i)
-            if (ignoreSelf != null && collision.entityReference == ignoreSelf) continue
-            collisions.add(EntityCollisionInfo.from(collision))
+        var collision = result.firstCharacterCollision
+        while (collision != null) {
+            if (ignoreSelf == null || collision.entityReference != ignoreSelf) {
+                collisions.add(EntityCollisionInfo.from(collision))
+            }
+            result.forgetFirstCharacterCollision()
+            collision = result.firstCharacterCollision
         }
         collisions
     } catch (e: Exception) {
@@ -331,7 +335,7 @@ data class BlockCollisionInfo(
                 rotation = data.rotation,
                 collisionPoint = Vector3d(data.collisionPoint),
                 collisionNormal = Vector3d(data.collisionNormal),
-                collisionScale = data.collisionVectorScale,
+                collisionScale = data.collisionStart,
                 touching = data.touching,
                 overlapping = data.overlapping,
                 willDamage = data.willDamage,
@@ -353,7 +357,7 @@ data class EntityCollisionInfo(
                 entityRef = data.entityReference,
                 isPlayer = data.isPlayer,
                 collisionPoint = Vector3d(data.collisionPoint),
-                collisionScale = data.collisionVectorScale
+                collisionScale = data.collisionStart
             )
         }
     }

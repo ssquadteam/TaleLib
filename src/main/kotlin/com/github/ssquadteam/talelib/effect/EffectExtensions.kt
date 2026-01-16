@@ -220,9 +220,11 @@ fun effectExists(effectId: String): Boolean {
     return getEffect(effectId) != null
 }
 
+@Suppress("UNCHECKED_CAST")
 fun getAllEffectIds(): List<String> {
     return try {
-        EntityEffect.getAssetMap().keys.toList()
+        val map = EntityEffect.getAssetMap().getAssetMap() as Map<Any, Any>
+        map.keys.map { it.toString() }
     } catch (e: Exception) {
         emptyList()
     }

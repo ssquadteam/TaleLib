@@ -1,13 +1,13 @@
 package com.github.ssquadteam.talelib.stats
 
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes
 import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType
 import com.hypixel.hytale.server.core.modules.entitystats.modifier.Modifier
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.ecs.Ref
+import com.hypixel.hytale.component.Ref
 
 /**
  * Extension functions for entity stats management.
@@ -19,7 +19,7 @@ import com.hypixel.hytale.server.ecs.Ref
 // ============================================
 
 fun PlayerRef.getStatMap(): EntityStatMap? {
-    val ref = this.ref ?: return null
+    val ref = this.reference ?: return null
     if (!ref.isValid) return null
     return ref.store.getComponent(ref, EntityStatMap.getComponentType())
 }
@@ -276,9 +276,11 @@ fun statExists(statId: String): Boolean {
     return getStatType(statId) != null
 }
 
+@Suppress("UNCHECKED_CAST")
 fun getAllStatIds(): List<String> {
     return try {
-        EntityStatType.getAssetMap().keys.toList()
+        val map = EntityStatType.getAssetMap().getAssetMap() as Map<Any, Any>
+        map.keys.map { it.toString() }
     } catch (e: Exception) {
         emptyList()
     }

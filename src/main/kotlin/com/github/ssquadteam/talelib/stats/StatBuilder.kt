@@ -1,13 +1,13 @@
 package com.github.ssquadteam.talelib.stats
 
-import com.hypixel.hytale.server.core.entity.EntityStore
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap
 import com.hypixel.hytale.server.core.modules.entitystats.asset.DefaultEntityStatTypes
 import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType
 import com.hypixel.hytale.server.core.modules.entitystats.modifier.Modifier
 import com.hypixel.hytale.server.core.modules.entitystats.modifier.StaticModifier
 import com.hypixel.hytale.server.core.universe.PlayerRef
-import com.hypixel.hytale.server.ecs.Ref
+import com.hypixel.hytale.component.Ref
 
 /**
  * DSL builder for manipulating entity stats.
@@ -147,7 +147,7 @@ class StatBuilder {
     }
 
     fun applyTo(player: PlayerRef): Float? {
-        val ref = player.ref ?: return null
+        val ref = player.reference ?: return null
         return applyTo(ref)
     }
 
@@ -175,7 +175,7 @@ class StatModifierBuilder {
     private var statIndex: Int? = null
     private var statId: String? = null
     private var modifierKey: String = ""
-    private var target: Modifier.ModifierTarget = Modifier.ModifierTarget.Max
+    private var target: Modifier.ModifierTarget = Modifier.ModifierTarget.MAX
     private var calculationType: StaticModifier.CalculationType = StaticModifier.CalculationType.ADDITIVE
     private var amount: Float = 0f
     private var predictable: EntityStatMap.Predictable = EntityStatMap.Predictable.SELF
@@ -213,12 +213,12 @@ class StatModifierBuilder {
     }
 
     fun modifyMax(): StatModifierBuilder {
-        this.target = Modifier.ModifierTarget.Max
+        this.target = Modifier.ModifierTarget.MAX
         return this
     }
 
     fun modifyMin(): StatModifierBuilder {
-        this.target = Modifier.ModifierTarget.Min
+        this.target = Modifier.ModifierTarget.MIN
         return this
     }
 
@@ -260,7 +260,7 @@ class StatModifierBuilder {
     }
 
     fun applyTo(player: PlayerRef): Boolean {
-        val ref = player.ref ?: return false
+        val ref = player.reference ?: return false
         return applyTo(ref)
     }
 

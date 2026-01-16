@@ -18,19 +18,17 @@ fun Ref<EntityStore>.damage(world: World, block: DamageBuilder.() -> Unit) {
     builder.execute(this, world)
 }
 
-fun Ref<EntityStore>.damage(world: World, amount: Float, cause: DamageCause = DamageCause.COMMAND) {
-    val damage = Damage(Damage.NULL_SOURCE, cause, amount)
-    world.commandBuffer.use { commandBuffer ->
-        DamageSystems.executeDamage(this, commandBuffer, damage)
-    }
+fun Ref<EntityStore>.damage(world: World, amount: Float, cause: DamageCause? = null) {
+    val actualCause = cause ?: DamageCause.COMMAND ?: return
+    val damage = Damage(Damage.NULL_SOURCE, actualCause, amount)
+    DamageSystems.executeDamage(this, world.entityStore.store, damage)
 }
 
-fun Ref<EntityStore>.damageFrom(world: World, attacker: Ref<EntityStore>, amount: Float, cause: DamageCause = DamageCause.COMMAND) {
+fun Ref<EntityStore>.damageFrom(world: World, attacker: Ref<EntityStore>, amount: Float, cause: DamageCause? = null) {
+    val actualCause = cause ?: DamageCause.COMMAND ?: return
     val source = Damage.EntitySource(attacker)
-    val damage = Damage(source, cause, amount)
-    world.commandBuffer.use { commandBuffer ->
-        DamageSystems.executeDamage(this, commandBuffer, damage)
-    }
+    val damage = Damage(source, actualCause, amount)
+    DamageSystems.executeDamage(this, world.entityStore.store, damage)
 }
 
 fun PlayerRef.damage(block: DamageBuilder.() -> Unit) {
@@ -39,22 +37,23 @@ fun PlayerRef.damage(block: DamageBuilder.() -> Unit) {
     ref.damage(world, block)
 }
 
-fun PlayerRef.damage(amount: Float, cause: DamageCause = DamageCause.COMMAND) {
+fun PlayerRef.damage(amount: Float, cause: DamageCause? = null) {
     val ref = this.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
     ref.damage(world, amount, cause)
 }
 
-fun PlayerRef.damageFrom(attacker: Ref<EntityStore>, amount: Float, cause: DamageCause = DamageCause.COMMAND) {
+fun PlayerRef.damageFrom(attacker: Ref<EntityStore>, amount: Float, cause: DamageCause? = null) {
     val ref = this.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
     ref.damageFrom(world, attacker, amount, cause)
 }
 
-fun PlayerRef.damageFrom(attacker: PlayerRef, amount: Float, cause: DamageCause = DamageCause.COMMAND) {
+fun PlayerRef.damageFrom(attacker: PlayerRef, amount: Float, cause: DamageCause? = null) {
     val ref = this.reference ?: return
+    val attackerRef = attacker.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    ref.damageFrom(world, attacker.reference, amount, cause)
+    ref.damageFrom(world, attackerRef, amount, cause)
 }
 
 fun PlayerRef.damageWithKnockback(
@@ -62,11 +61,12 @@ fun PlayerRef.damageWithKnockback(
     knockbackX: Double,
     knockbackY: Double,
     knockbackZ: Double,
-    cause: DamageCause = DamageCause.COMMAND
+    cause: DamageCause? = null
 ) {
+    val actualCause = cause ?: DamageCause.COMMAND ?: return
     damage {
         amount(amount)
-        cause(cause)
+        cause(actualCause)
         knockback(knockbackX, knockbackY, knockbackZ)
     }
 }
@@ -76,45 +76,50 @@ fun PlayerRef.damageWithKnockbackFrom(
     amount: Float,
     knockbackForce: Double = 0.5,
     verticalForce: Double = 0.3,
-    cause: DamageCause = DamageCause.COMMAND
+    cause: DamageCause? = null
 ) {
     val ref = this.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    val attackerTransform = attacker.transform
-    val targetTransform = this.transform
+    val actualCause = cause ?: DamageCause.COMMAND ?: return
+    val attackerPos = attacker.transform.position
+    val targetPos = this.transform.position
 
     ref.damage(world) {
         amount(amount)
-        cause(cause)
+        cause(actualCause)
         fromPlayer(attacker)
         knockback {
-            awayFrom(attackerTransform.x, attackerTransform.z, targetTransform.x, targetTransform.z, knockbackForce, verticalForce)
+            awayFrom(attackerPos.x, attackerPos.z, targetPos.x, targetPos.z, knockbackForce, verticalForce)
         }
     }
 }
 
-fun PlayerRef.kill(cause: DamageCause = DamageCause.COMMAND) {
+fun PlayerRef.kill(cause: DamageCause? = null) {
     damage(Float.MAX_VALUE, cause)
 }
 
-fun Ref<EntityStore>.kill(world: World, cause: DamageCause = DamageCause.COMMAND) {
+fun Ref<EntityStore>.kill(world: World, cause: DamageCause? = null) {
     damage(world, Float.MAX_VALUE, cause)
 }
 
 fun PlayerRef.applyFallDamage(amount: Float) {
-    damage(amount, DamageCause.FALL)
+    val cause = DamageCause.FALL ?: return
+    damage(amount, cause)
 }
 
 fun PlayerRef.applyDrowningDamage(amount: Float = 2f) {
-    damage(amount, DamageCause.DROWNING)
+    val cause = DamageCause.DROWNING ?: return
+    damage(amount, cause)
 }
 
 fun PlayerRef.applySuffocationDamage(amount: Float = 1f) {
-    damage(amount, DamageCause.SUFFOCATION)
+    val cause = DamageCause.SUFFOCATION ?: return
+    damage(amount, cause)
 }
 
 fun PlayerRef.applyOutOfWorldDamage(amount: Float = Float.MAX_VALUE) {
-    damage(amount, DamageCause.OUT_OF_WORLD)
+    val cause = DamageCause.OUT_OF_WORLD ?: return
+    damage(amount, cause)
 }
 
 fun getDamageCause(id: String): DamageCause? {

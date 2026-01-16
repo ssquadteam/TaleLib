@@ -237,7 +237,7 @@ private fun World.getBlockHealthChunk(blockPos: Vector3i): BlockHealthChunk? {
 
 private fun World.getTimeResource(): com.hypixel.hytale.server.core.modules.time.WorldTimeResource? {
     return try {
-        this.entityStore.getResource(com.hypixel.hytale.server.core.modules.time.WorldTimeResource.getResourceType())
+        this.entityStore.store.getResource(com.hypixel.hytale.server.core.modules.time.WorldTimeResource.getResourceType())
     } catch (e: Exception) {
         null
     }

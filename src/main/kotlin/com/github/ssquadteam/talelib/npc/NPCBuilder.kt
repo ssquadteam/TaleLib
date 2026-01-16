@@ -102,13 +102,16 @@ class NPCBuilder {
         val pos = position ?: return null
         val rot = rotation ?: Vector3f(0f, 0f, 0f)
 
+        val state = initialState
+        val subState = initialSubState
+        val callback = postSpawnCallback
         val combinedPostSpawn: TriConsumer<NPCEntity, Ref<EntityStore>, Store<EntityStore>>? =
-            if (initialState != null || postSpawnCallback != null) {
+            if (state != null || callback != null) {
                 TriConsumer { npc, ref, s ->
-                    if (initialState != null) {
-                        npc.role?.stateSupport?.setState(ref, initialState, initialSubState, s)
+                    if (state != null) {
+                        npc.role?.stateSupport?.setState(ref, state, subState, s)
                     }
-                    postSpawnCallback?.accept(npc, ref, s)
+                    callback?.accept(npc, ref, s)
                 }
             } else null
 

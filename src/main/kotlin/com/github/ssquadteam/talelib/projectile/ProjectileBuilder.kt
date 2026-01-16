@@ -1,6 +1,8 @@
 package com.github.ssquadteam.talelib.projectile
 
+import com.hypixel.hytale.component.CommandBuffer
 import com.hypixel.hytale.component.Ref
+import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule
@@ -102,37 +104,37 @@ class ProjectileBuilder {
         return this
     }
 
-    fun spawn(world: World): Ref<EntityStore>? {
+    /**
+     * Spawns the projectile using the provided CommandBuffer.
+     * Must be called from within a system context where a CommandBuffer is available.
+     */
+    fun spawn(commandBuffer: CommandBuffer<EntityStore>): Ref<EntityStore>? {
         val projectileConfig = resolveConfig() ?: return null
         val pos = position ?: return null
         val dir = direction ?: return null
         val creator = creatorRef ?: return null
 
-        val scaledDirection = Vector3d(dir).mul(velocityMultiplier)
+        val scaledDirection = Vector3d(dir).scale(velocityMultiplier)
 
         return try {
-            var result: Ref<EntityStore>? = null
-            world.commandBuffer.use { commandBuffer ->
-                result = if (predictionId != null) {
-                    ProjectileModule.get().spawnProjectile(
-                        predictionId,
-                        creator,
-                        commandBuffer,
-                        projectileConfig,
-                        pos,
-                        scaledDirection
-                    )
-                } else {
-                    ProjectileModule.get().spawnProjectile(
-                        creator,
-                        commandBuffer,
-                        projectileConfig,
-                        pos,
-                        scaledDirection
-                    )
-                }
+            if (predictionId != null) {
+                ProjectileModule.get().spawnProjectile(
+                    predictionId,
+                    creator,
+                    commandBuffer,
+                    projectileConfig,
+                    pos,
+                    scaledDirection
+                )
+            } else {
+                ProjectileModule.get().spawnProjectile(
+                    creator,
+                    commandBuffer,
+                    projectileConfig,
+                    pos,
+                    scaledDirection
+                )
             }
-            result
         } catch (e: Exception) {
             null
         }
@@ -153,6 +155,10 @@ fun projectile(block: ProjectileBuilder.() -> Unit): ProjectileBuilder {
     return ProjectileBuilder().apply(block)
 }
 
-fun World.spawnProjectile(block: ProjectileBuilder.() -> Unit): Ref<EntityStore>? {
+/**
+ * Spawns a projectile using the provided CommandBuffer.
+ * Must be called from within a system context where a CommandBuffer is available.
+ */
+fun CommandBuffer<EntityStore>.spawnProjectile(block: ProjectileBuilder.() -> Unit): Ref<EntityStore>? {
     return ProjectileBuilder().apply(block).spawn(this)
 }

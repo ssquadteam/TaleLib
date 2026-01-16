@@ -15,6 +15,15 @@ import java.time.LocalDateTime
  */
 
 // ============================================
+// PlayerRef Helper Extensions
+// ============================================
+
+private fun PlayerRef.getWorld(): World? {
+    val ref = this.reference ?: return null
+    return (ref.store.externalData as? EntityStore)?.world
+}
+
+// ============================================
 // Time Constants
 // ============================================
 
@@ -58,7 +67,7 @@ enum class TimeOfDay(val progress: Float, val hour: Int) {
 
 fun World.getTimeResource(): WorldTimeResource? {
     return try {
-        this.entityStore.getResource(WorldTimeResource.getResourceType())
+        this.entityStore.store.getResource(WorldTimeResource.getResourceType())
     } catch (e: Exception) {
         null
     }
@@ -124,7 +133,7 @@ fun World.isNewMoon(): Boolean {
 fun World.setGameTime(instant: Instant): Boolean {
     val timeResource = getTimeResource() ?: return false
     return try {
-        timeResource.setGameTime(instant, this, this.entityStore)
+        timeResource.setGameTime(instant, this, this.entityStore.store)
         true
     } catch (e: Exception) {
         false
@@ -134,7 +143,7 @@ fun World.setGameTime(instant: Instant): Boolean {
 fun World.setDayProgress(progress: Double): Boolean {
     val timeResource = getTimeResource() ?: return false
     return try {
-        timeResource.setDayTime(progress.coerceIn(0.0, 1.0), this, this.entityStore)
+        timeResource.setDayTime(progress.coerceIn(0.0, 1.0), this, this.entityStore.store)
         true
     } catch (e: Exception) {
         false
@@ -161,7 +170,7 @@ fun World.setMidnight(): Boolean = setTimeOfDay(TimeOfDay.MIDNIGHT)
 fun World.setTimeDilation(multiplier: Float): Boolean {
     return try {
         val clamped = multiplier.coerceIn(TimeConstants.TIME_DILATION_MIN, TimeConstants.TIME_DILATION_MAX)
-        World.setTimeDilation(clamped, this.entityStore)
+        World.setTimeDilation(clamped, this.entityStore.store)
         true
     } catch (e: Exception) {
         false
@@ -185,7 +194,7 @@ fun World.slowMotion(): Boolean {
 // ============================================
 
 fun PlayerRef.sendTime() {
-    val world = this.world ?: return
+    val world = getWorld() ?: return
     val timeResource = world.getTimeResource() ?: return
     timeResource.sendTimePackets(this)
 }

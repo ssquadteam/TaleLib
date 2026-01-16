@@ -82,7 +82,8 @@ class DamageBuilder {
     }
 
     fun fromPlayer(player: PlayerRef): DamageBuilder {
-        this.source = Damage.EntitySource(player.reference)
+        val ref = player.reference ?: return this
+        this.source = Damage.EntitySource(ref)
         return this
     }
 
@@ -142,10 +143,14 @@ class DamageBuilder {
     }
 
     fun build(): Damage {
+        val defaultCause = DamageCause.COMMAND
+            ?: DamageCause.getAssetMap().getAsset("Command")
+            ?: throw IllegalStateException("DamageCause.COMMAND not initialized")
+
         val damageCause = when {
             cause != null -> cause!!
-            causeId != null -> DamageCause.getAssetMap().getAsset(causeId) ?: DamageCause.COMMAND
-            else -> DamageCause.COMMAND
+            causeId != null -> DamageCause.getAssetMap().getAsset(causeId) ?: defaultCause
+            else -> defaultCause
         }
 
         val damage = Damage(source, damageCause, amount)
@@ -154,14 +159,14 @@ class DamageBuilder {
         hitAngle?.let { damage.putMetaObject(Damage.HIT_ANGLE, it) }
 
         if (impactSoundId != null) {
-            val soundIndex = com.hypixel.hytale.server.core.modules.audio.SoundEvent.getAssetMap().getIndex(impactSoundId)
+            val soundIndex = com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent.getAssetMap().getIndex(impactSoundId)
             if (soundIndex >= 0) {
                 damage.putMetaObject(Damage.IMPACT_SOUND_EFFECT, Damage.SoundEffect(soundIndex))
             }
         }
 
         if (playerImpactSoundId != null) {
-            val soundIndex = com.hypixel.hytale.server.core.modules.audio.SoundEvent.getAssetMap().getIndex(playerImpactSoundId)
+            val soundIndex = com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent.getAssetMap().getIndex(playerImpactSoundId)
             if (soundIndex >= 0) {
                 damage.putMetaObject(Damage.PLAYER_IMPACT_SOUND_EFFECT, Damage.SoundEffect(soundIndex))
             }
@@ -188,9 +193,7 @@ class DamageBuilder {
 
     fun execute(targetRef: Ref<EntityStore>, world: World) {
         val damage = build()
-        world.commandBuffer.use { commandBuffer ->
-            DamageSystems.executeDamage(targetRef, commandBuffer, damage)
-        }
+        DamageSystems.executeDamage(targetRef, world.entityStore.store, damage)
     }
 }
 

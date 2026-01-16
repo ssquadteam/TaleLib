@@ -1,8 +1,9 @@
 package com.github.ssquadteam.talelib.prefab
 
 import com.hypixel.hytale.component.Ref
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.Rotation
 import com.hypixel.hytale.math.vector.Vector3i
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.Rotation
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.prefab.PrefabRotation
 import com.hypixel.hytale.server.core.prefab.PrefabStore
 import com.hypixel.hytale.server.core.prefab.PrefabWeights
@@ -233,8 +234,9 @@ fun PlayerRef.spawnPrefabAtLocation(
     rotation: Rotation = Rotation.None,
     force: Boolean = false
 ): Boolean {
-    val world = this.world ?: return false
-    val pos = this.position ?: return false
+    val ref = this.reference ?: return false
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return false
+    val pos = this.transform.position
 
     val targetPos = Vector3i(
         pos.x.toInt() + offsetX,
@@ -251,16 +253,12 @@ fun PlayerRef.spawnPrefabAtLookTarget(
     rotation: Rotation = Rotation.None,
     force: Boolean = false
 ): Boolean {
-    val world = this.world ?: return false
-
-    // Get raycast target using collision extensions if available
-    // For now, use position-based placement
-    val pos = this.position ?: return false
+    val ref = this.reference ?: return false
+    val world = (ref.store.externalData as? EntityStore)?.world ?: return false
+    val pos = this.transform.position
 
     // Simple forward placement based on facing
-    val ref = this.ref ?: return false
-    val store = ref.store
-    val transform = store.getComponent(ref, com.hypixel.hytale.server.core.entity.component.TransformComponent.getComponentType())
+    val transform = ref.store.getComponent(ref, TransformComponent.getComponentType())
         ?: return false
     val rot = transform.rotation ?: return false
 
@@ -295,7 +293,7 @@ object PrefabRotations {
     }
 
     fun toRotation(prefabRotation: PrefabRotation): Rotation {
-        return prefabRotation.rotation
+        return Rotation.ofDegrees(prefabRotation.yaw.toInt())
     }
 }
 

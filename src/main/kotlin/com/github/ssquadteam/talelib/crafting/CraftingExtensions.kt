@@ -81,9 +81,11 @@ fun recipeExists(recipeId: String): Boolean {
     return getRecipe(recipeId) != null
 }
 
+@Suppress("UNCHECKED_CAST")
 fun getAllRecipeIds(): List<String> {
     return try {
-        CraftingRecipe.getAssetMap().keys.toList()
+        val map = CraftingRecipe.getAssetMap().getAssetMap() as Map<Any, Any>
+        map.keys.map { it.toString() }
     } catch (e: Exception) {
         emptyList()
     }
@@ -95,8 +97,9 @@ fun getAllRecipeIds(): List<String> {
 
 fun getBenchRecipes(benchId: String): List<CraftingRecipe> {
     return try {
-        val bench = Bench.getAssetMap().getAsset(benchId) ?: return emptyList()
-        CraftingPlugin.getBenchRecipes(bench)
+        // Note: Bench is abstract and doesn't have getAssetMap()
+        // Use the BenchType overload instead
+        CraftingPlugin.getBenchRecipes(BenchType.Crafting, benchId)
     } catch (e: Exception) {
         emptyList()
     }
@@ -160,7 +163,7 @@ fun CraftingRecipe.getInputItems(): List<RecipeInput> {
         RecipeInput(
             itemId = material.itemId,
             resourceTypeId = material.resourceTypeId,
-            itemTag = material.itemTag,
+            itemTag = material.tagIndex,
             quantity = material.quantity
         )
     }
@@ -218,7 +221,7 @@ fun CraftingRecipe.isFieldcraftRecipe(): Boolean {
 data class RecipeInput(
     val itemId: String?,
     val resourceTypeId: String?,
-    val itemTag: String?,
+    val itemTag: Int,
     val quantity: Int
 )
 
@@ -231,22 +234,6 @@ data class RecipeOutput(
 // Bench Lookup Functions
 // ============================================
 
-fun getBench(benchId: String): Bench? {
-    return try {
-        Bench.getAssetMap().getAsset(benchId)
-    } catch (e: Exception) {
-        null
-    }
-}
-
-fun benchExists(benchId: String): Boolean {
-    return getBench(benchId) != null
-}
-
-fun getAllBenchIds(): List<String> {
-    return try {
-        Bench.getAssetMap().keys.toList()
-    } catch (e: Exception) {
-        emptyList()
-    }
-}
+// Note: Bench is an abstract class without getAssetMap().
+// Direct Bench lookup is not supported through the asset system.
+// Use CraftingPlugin.getBenchRecipes(BenchType, benchId) instead.

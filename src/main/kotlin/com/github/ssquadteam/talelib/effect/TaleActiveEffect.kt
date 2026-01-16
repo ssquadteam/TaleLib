@@ -8,9 +8,6 @@ import com.hypixel.hytale.server.core.entity.effect.ActiveEntityEffect
  */
 class TaleActiveEffect(private val activeEffect: ActiveEntityEffect) {
 
-    val effectId: String
-        get() = activeEffect.entityEffectId
-
     val effectIndex: Int
         get() = activeEffect.entityEffectIndex
 
@@ -31,9 +28,6 @@ class TaleActiveEffect(private val activeEffect: ActiveEntityEffect) {
 
     val isInvulnerable: Boolean
         get() = activeEffect.isInvulnerable
-
-    val statusEffectIcon: String?
-        get() = activeEffect.statusEffectIcon
 
     val progress: Float
         get() = when {
@@ -60,7 +54,7 @@ class TaleActiveEffect(private val activeEffect: ActiveEntityEffect) {
     override fun toString(): String {
         val type = if (isDebuff) "Debuff" else "Buff"
         val duration = formatDuration()
-        return "TaleActiveEffect[$effectId, $type, Duration: $duration]"
+        return "TaleActiveEffect[index=$effectIndex, $type, Duration: $duration]"
     }
 
     fun unwrap(): ActiveEntityEffect = activeEffect
