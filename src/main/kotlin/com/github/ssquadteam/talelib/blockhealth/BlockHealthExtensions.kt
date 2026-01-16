@@ -3,7 +3,7 @@ package com.github.ssquadteam.talelib.blockhealth
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealth
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthChunk
 import com.hypixel.hytale.server.core.modules.blockhealth.BlockHealthModule
-import com.hypixel.hytale.server.core.universe.world.chunk.ChunkUtil
+import com.hypixel.hytale.math.util.ChunkUtil
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.math.vector.Vector3i
 import java.time.Instant

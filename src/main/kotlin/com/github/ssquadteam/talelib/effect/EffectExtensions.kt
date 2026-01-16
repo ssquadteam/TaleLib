@@ -5,7 +5,7 @@ import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffec
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.OverlapBehavior
 import com.hypixel.hytale.server.core.entity.effect.ActiveEntityEffect
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent
-import com.hypixel.hytale.server.core.entity.effect.RemovalBehavior
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.RemovalBehavior
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
