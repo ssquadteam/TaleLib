@@ -89,6 +89,7 @@ Detailed documentation for each system is available in the [docs/](docs/) folder
 
 - [Commands](docs/commands.md) - Command system with arguments and subcommands
 - [Events](docs/events.md) - Event handling with priorities
+- [Input](docs/input.md) - Mouse, keyboard-mapped actions, movement states, hold detection
 - [Camera](docs/camera.md) - Camera presets and custom camera configuration
 - [UI System](docs/ui.md) - HUDs and interactive pages
 - [Holograms](docs/holograms.md) - Floating text holograms
@@ -102,6 +103,7 @@ Detailed documentation for each system is available in the [docs/](docs/) folder
 - [Configuration](docs/configuration.md) - JSON config management
 - [Scheduler](docs/scheduler.md) - Coroutine-based task scheduling
 - [Messages](docs/messages.md) - Message formatting and colors
+- [Notifications](docs/notifications.md) - Player notifications
 - [Inventory](docs/inventory.md) - Inventory management
 - [Permissions](docs/permissions.md) - Permission checking and groups
 - [Sound](docs/sound.md) - 2D and 3D sound playback
