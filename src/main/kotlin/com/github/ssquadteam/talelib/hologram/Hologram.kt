@@ -21,17 +21,14 @@ import java.util.concurrent.ConcurrentHashMap
 class Hologram internal constructor(
     val id: UUID,
     internal val entityRef: Ref<EntityStore>,
-    private val world: World
-) {
+    private val world: World,
     /**
-     * Gets the entity UUID from the UUIDComponent.
+     * The entity UUID from the UUIDComponent.
      * This is the UUID used for entity persistence and lookup.
+     * Cached at creation time to avoid thread issues.
      */
-    val entityUuid: UUID?
-        get() {
-            val entityStore = world.entityStore ?: return null
-            return entityStore.store.getComponent(entityRef, UUIDComponent.getComponentType())?.uuid
-        }
+    val entityUuid: UUID? = null
+) {
 
     /**
      * Gets or sets the hologram text.
@@ -153,9 +150,13 @@ object HologramManager {
     /**
      * Creates a Hologram wrapper for an existing entity reference.
      * Used when restoring holograms from persisted entity UUIDs.
+     *
+     * @param entityRef The entity reference from the store
+     * @param world The world containing the entity
+     * @param entityUuid The entity's UUID (from UUIDComponent), used for persistence
      */
-    fun wrapExisting(entityRef: Ref<EntityStore>, world: World): Hologram {
-        val hologram = Hologram(UUID.randomUUID(), entityRef, world)
+    fun wrapExisting(entityRef: Ref<EntityStore>, world: World, entityUuid: UUID? = null): Hologram {
+        val hologram = Hologram(UUID.randomUUID(), entityRef, world, entityUuid)
         register(hologram)
         return hologram
     }

@@ -90,7 +90,7 @@ private fun World.createHologramInternal(text: String, x: Double, y: Double, z: 
     val ref: Ref<EntityStore>? = store.addEntity(holder, AddReason.SPAWN)
 
     return if (ref != null) {
-        val hologram = Hologram(UUID.randomUUID(), ref, this)
+        val hologram = Hologram(UUID.randomUUID(), ref, this, entityUuid)
         HologramManager.register(hologram)
         hologram
     } else {
