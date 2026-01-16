@@ -6,6 +6,7 @@ import com.hypixel.hytale.component.AddReason
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
+import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.core.entity.entities.ProjectileComponent
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate
