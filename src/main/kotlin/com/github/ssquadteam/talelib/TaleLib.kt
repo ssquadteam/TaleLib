@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 object TaleLib {
     private val LOGGER: HytaleLogger = HytaleLogger.forEnclosingClass()
-    const val VERSION = "0.1.0"
+    const val VERSION = "0.2.0"
 
     private val pluginInstances = ConcurrentHashMap<String, JavaPlugin>()
 

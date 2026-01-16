@@ -2,7 +2,7 @@
     "Group": "SSquadTeam",
     "Name": "TaleLib",
     "Main": "com.github.ssquadteam.talelib.TaleLibPlugin",
-    "Version": "0.1.0",
+    "Version": "0.2.0",
     "ServerVersion": "*",
     "IncludesAssetPack": false,
     "Description": "A flexible, expandable Kotlin library for Hytale plugin development"
