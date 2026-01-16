@@ -62,7 +62,9 @@ private fun World.createHologramInternal(text: String, x: Double, y: Double, z: 
         TransformComponent(Vector3d(x, y, z), Vector3f(0f, 0f, 0f))
     )
 
-    holder.ensureComponent(UUIDComponent.getComponentType())
+    // Create a specific UUID for this entity that we can track
+    val entityUuid = UUID.randomUUID()
+    holder.addComponent(UUIDComponent.getComponentType(), UUIDComponent(entityUuid))
     holder.ensureComponent(Intangible.getComponentType())
 
     if (projectileComponent.projectile == null) {

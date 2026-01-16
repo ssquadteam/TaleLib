@@ -3,6 +3,7 @@ package com.github.ssquadteam.talelib.hologram
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
 import com.hypixel.hytale.math.vector.Vector3d
+import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.universe.world.World
@@ -22,6 +23,16 @@ class Hologram internal constructor(
     internal val entityRef: Ref<EntityStore>,
     private val world: World
 ) {
+    /**
+     * Gets the entity UUID from the UUIDComponent.
+     * This is the UUID used for entity persistence and lookup.
+     */
+    val entityUuid: UUID?
+        get() {
+            val entityStore = world.entityStore ?: return null
+            return entityStore.store.getComponent(entityRef, UUIDComponent.getComponentType())?.uuid
+        }
+
     /**
      * Gets or sets the hologram text.
      */
@@ -77,16 +88,22 @@ class Hologram internal constructor(
 
         if (isOnWorldThread) {
             // Execute synchronously if already on world thread
-            val entityStore = world.entityStore
-            if (entityStore != null && entityRef.isValid) {
-                entityStore.store.removeEntity(entityRef, EntityStore.REGISTRY.newHolder(), RemoveReason.REMOVE)
+            try {
+                val entityStore = world.entityStore
+                if (entityStore != null && entityRef.isValid) {
+                    entityStore.store.removeEntity(entityRef, EntityStore.REGISTRY.newHolder(), RemoveReason.REMOVE)
+                }
+            } catch (_: IllegalStateException) {
             }
         } else {
             // Schedule for world thread
             world.execute {
-                if (!entityRef.isValid) return@execute
-                val entityStore = world.entityStore ?: return@execute
-                entityStore.store.removeEntity(entityRef, EntityStore.REGISTRY.newHolder(), RemoveReason.REMOVE)
+                try {
+                    if (!entityRef.isValid) return@execute
+                    val entityStore = world.entityStore ?: return@execute
+                    entityStore.store.removeEntity(entityRef, EntityStore.REGISTRY.newHolder(), RemoveReason.REMOVE)
+                } catch (_: IllegalStateException) {
+                }
             }
         }
     }
