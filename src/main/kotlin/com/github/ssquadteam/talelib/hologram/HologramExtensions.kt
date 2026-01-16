@@ -30,88 +30,74 @@ import java.util.concurrent.CompletableFuture
  * @return The created Hologram, or null if creation failed
  */
 fun World.createHologram(text: String, x: Double, y: Double, z: Double): Hologram? {
-    val future = CompletableFuture<Hologram?>()
+    val isOnWorldThread = Thread.currentThread().name.contains("WorldThread")
 
-    this.execute {
-        val entityStore = this.entityStore ?: run {
-            future.complete(null)
-            return@execute
+    if (isOnWorldThread) {
+        return createHologramInternal(text, x, y, z)
+    } else {
+        val future = CompletableFuture<Hologram?>()
+        this.execute {
+            future.complete(createHologramInternal(text, x, y, z))
         }
-        val store = entityStore.store
+        return try {
+            future.get()
+        } catch (e: Exception) {
+            null
+        }
+    }
+}
 
-        // Create entity holder
-        val holder = EntityStore.REGISTRY.newHolder()
+private fun World.createHologramInternal(text: String, x: Double, y: Double, z: Double): Hologram? {
+    val entityStore = this.entityStore ?: return null
+    val store = entityStore.store
 
-        // Add ProjectileComponent as entity shell (required for valid entity)
-        val projectileComponent = ProjectileComponent("Projectile")
-        holder.putComponent(ProjectileComponent.getComponentType(), projectileComponent)
+    val holder = EntityStore.REGISTRY.newHolder()
 
-        // Add TransformComponent for position
-        holder.putComponent(
-            TransformComponent.getComponentType(),
-            TransformComponent(Vector3d(x, y, z), Vector3f(0f, 0f, 0f))
-        )
+    val projectileComponent = ProjectileComponent("Projectile")
+    holder.putComponent(ProjectileComponent.getComponentType(), projectileComponent)
 
-        // Ensure UUIDComponent and Intangible
-        holder.ensureComponent(UUIDComponent.getComponentType())
-        holder.ensureComponent(Intangible.getComponentType())
+    holder.putComponent(
+        TransformComponent.getComponentType(),
+        TransformComponent(Vector3d(x, y, z), Vector3f(0f, 0f, 0f))
+    )
 
-        // Initialize projectile (required for valid entity)
+    holder.ensureComponent(UUIDComponent.getComponentType())
+    holder.ensureComponent(Intangible.getComponentType())
+
+    if (projectileComponent.projectile == null) {
+        projectileComponent.initialize()
         if (projectileComponent.projectile == null) {
-            projectileComponent.initialize()
-            if (projectileComponent.projectile == null) {
-                future.complete(null)
-                return@execute
-            }
-        }
-
-        // Add NetworkId for network sync
-        holder.addComponent(
-            NetworkId.getComponentType(),
-            NetworkId(store.externalData.takeNextNetworkId())
-        )
-
-        // Add Nameplate for the hologram text
-        holder.addComponent(
-            Nameplate.getComponentType(),
-            Nameplate(text)
-        )
-
-        // Spawn the entity
-        val ref: Ref<EntityStore>? = store.addEntity(holder, AddReason.SPAWN)
-
-        if (ref != null) {
-            val hologram = Hologram(UUID.randomUUID(), ref, this)
-            HologramManager.register(hologram)
-            future.complete(hologram)
-        } else {
-            future.complete(null)
+            return null
         }
     }
 
-    return try {
-        future.get()
-    } catch (e: Exception) {
+    // Add NetworkId for network sync
+    holder.addComponent(
+        NetworkId.getComponentType(),
+        NetworkId(store.externalData.takeNextNetworkId())
+    )
+
+    // Add Nameplate for the hologram text
+    holder.addComponent(
+        Nameplate.getComponentType(),
+        Nameplate(text)
+    )
+
+    // Spawn the entity
+    val ref: Ref<EntityStore>? = store.addEntity(holder, AddReason.SPAWN)
+
+    return if (ref != null) {
+        val hologram = Hologram(UUID.randomUUID(), ref, this)
+        HologramManager.register(hologram)
+        hologram
+    } else {
         null
     }
 }
 
-/**
- * Creates a hologram at the specified position.
- */
 fun World.createHologram(text: String, position: Vector3d): Hologram? =
     createHologram(text, position.x, position.y, position.z)
 
-/**
- * Creates multiple holograms for multi-line text.
- *
- * @param lines List of text lines
- * @param x X coordinate
- * @param y Y coordinate (for the bottom line)
- * @param z Z coordinate
- * @param lineSpacing Vertical spacing between lines (default 0.25)
- * @return List of created Holograms
- */
 fun World.createMultiLineHologram(
     lines: List<String>,
     x: Double,
@@ -120,14 +106,10 @@ fun World.createMultiLineHologram(
     lineSpacing: Double = 0.25
 ): List<Hologram> {
     return lines.mapIndexedNotNull { index, line ->
-        // Stack lines from bottom to top
         createHologram(line, x, y + (lines.size - 1 - index) * lineSpacing, z)
     }
 }
 
-/**
- * Creates multiple holograms for multi-line text.
- */
 fun World.createMultiLineHologram(
     lines: List<String>,
     position: Vector3d,
