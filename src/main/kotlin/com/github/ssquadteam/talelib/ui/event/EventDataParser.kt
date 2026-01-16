@@ -24,7 +24,7 @@ class ParsedEventData(
     /**
      * Get a captured value from the event data
      */
-    val value: String? get() = data["Value"]
+    val value: String? get() = data["Value"] ?: data["@Value"]
 
     /**
      * Get a specific field by key

@@ -15,6 +15,7 @@ import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage
+import com.hypixel.hytale.protocol.packets.interface_.Page
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -109,8 +110,10 @@ abstract class TalePage(
      */
     fun close(player: PlayerRef) {
         val p = player.getPlayerComponent() ?: return
+        val ref = player.reference ?: return
+        val store = ref.store
         activePages.remove(player)
-        // Note: The actual page close is handled by the UI system
+        p.pageManager.setPage(ref, store, Page.None)
         onClose(player)
     }
 
