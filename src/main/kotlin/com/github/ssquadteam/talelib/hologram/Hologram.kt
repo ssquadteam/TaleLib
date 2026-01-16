@@ -67,22 +67,28 @@ class Hologram internal constructor(
      * Removes the hologram from the world.
      */
     fun remove() {
+        // Always unregister first to prevent double-removal attempts
+        HologramManager.unregister(id)
+
+        // Skip if entity is already invalid (already removed)
+        if (!entityRef.isValid) return
+
         val isOnWorldThread = Thread.currentThread().name.contains("WorldThread")
 
         if (isOnWorldThread) {
             // Execute synchronously if already on world thread
             val entityStore = world.entityStore
-            if (entityStore != null) {
+            if (entityStore != null && entityRef.isValid) {
                 entityStore.store.removeEntity(entityRef, EntityStore.REGISTRY.newHolder(), RemoveReason.REMOVE)
             }
         } else {
             // Schedule for world thread
             world.execute {
+                if (!entityRef.isValid) return@execute
                 val entityStore = world.entityStore ?: return@execute
                 entityStore.store.removeEntity(entityRef, EntityStore.REGISTRY.newHolder(), RemoveReason.REMOVE)
             }
         }
-        HologramManager.unregister(id)
     }
 
     /**
