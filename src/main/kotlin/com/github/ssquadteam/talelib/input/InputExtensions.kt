@@ -88,3 +88,52 @@ val PlayerMouseMotionEvent.hasTargetBlock: Boolean
 
 val PlayerMouseMotionEvent.hasTargetEntity: Boolean
     get() = this.targetEntity != null
+
+// ============================================
+// Hold Detection (PlayerMouseButtonEvent)
+// ============================================
+
+val PlayerMouseButtonEvent.holdTimeMs: Long
+    get() = this.clientUseTime
+
+val PlayerMouseButtonEvent.holdTimeSeconds: Float
+    get() = this.clientUseTime / 1000f
+
+val PlayerMouseButtonEvent.isTap: Boolean
+    get() = this.clientUseTime < 200
+
+val PlayerMouseButtonEvent.isHold: Boolean
+    get() = this.clientUseTime >= 200
+
+val PlayerMouseButtonEvent.isLongHold: Boolean
+    get() = this.clientUseTime >= 500
+
+fun PlayerMouseButtonEvent.isHeldFor(millis: Long): Boolean = this.clientUseTime >= millis
+
+// ============================================
+// Cancellation (PlayerMouseButtonEvent)
+// ============================================
+
+fun PlayerMouseButtonEvent.cancel() {
+    isCancelled = true
+}
+
+inline fun PlayerMouseButtonEvent.cancelIf(condition: () -> Boolean) {
+    if (condition()) {
+        isCancelled = true
+    }
+}
+
+// ============================================
+// Cancellation (PlayerMouseMotionEvent)
+// ============================================
+
+fun PlayerMouseMotionEvent.cancel() {
+    isCancelled = true
+}
+
+inline fun PlayerMouseMotionEvent.cancelIf(condition: () -> Boolean) {
+    if (condition()) {
+        isCancelled = true
+    }
+}
