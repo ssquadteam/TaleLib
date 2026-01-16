@@ -10,6 +10,11 @@ A flexible, expandable Kotlin library for Hytale plugin development.
 - **UI System** - HUDs and interactive pages with element bindings
 - **Hologram System** - Floating text holograms with multi-line support
 - **Entity System** - Model-based entity spawning and management
+- **Projectile System** - Projectile spawning with direction and spread utilities
+- **Spawn System** - Spawn point management and teleportation
+- **Stat System** - Stat modifier management (health, mana, etc.)
+- **Time System** - World time and time dilation control
+- **Prefab System** - Prefab config access and rotation utilities
 - **Scheduler** - Coroutine-based task scheduling
 - **Config System** - JSON configuration with kotlinx-serialization
 - **And more:** Inventory, Permissions, Sound, Notifications, Teleportation, Input handling
@@ -88,6 +93,11 @@ Detailed documentation for each system is available in the [docs/](docs/) folder
 - [UI System](docs/ui.md) - HUDs and interactive pages
 - [Holograms](docs/holograms.md) - Floating text holograms
 - [Entity](docs/entity.md) - Entity spawning and management
+- [Projectiles](docs/projectiles.md) - Projectile spawning and direction utilities
+- [Spawn](docs/spawn.md) - Spawn point management
+- [Stats](docs/stats.md) - Stat modifier system
+- [Time](docs/time.md) - World time and dilation
+- [Prefabs](docs/prefabs.md) - Prefab utilities
 - [Player](docs/player.md) - Player and PlayerRef extensions
 - [Configuration](docs/configuration.md) - JSON config management
 - [Scheduler](docs/scheduler.md) - Coroutine-based task scheduling
@@ -97,6 +107,7 @@ Detailed documentation for each system is available in the [docs/](docs/) folder
 - [Sound](docs/sound.md) - 2D and 3D sound playback
 - [Teleportation](docs/teleportation.md) - Player teleportation
 - [World](docs/world.md) - World utilities
+- [Vectors](docs/vectors.md) - Vector utilities and method names
 
 ## Key Concepts
 
@@ -113,6 +124,36 @@ val playerRef: PlayerRef = player.playerRef
 
 // Get Player from PlayerRef (in world context)
 val player: Player? = playerRef.player
+```
+
+### PlayerRef Property Access
+
+**Important**: `PlayerRef` does NOT have direct `world` or `position` properties:
+
+```kotlin
+// ❌ Wrong - these don't exist!
+val world = playerRef.world
+val pos = playerRef.position
+
+// ✅ Correct
+val ref = playerRef.reference              // Ref<EntityStore>? (not .ref!)
+val pos = playerRef.transform.position     // Vector3d?
+
+// Getting World from PlayerRef
+private fun PlayerRef.getWorld(): World? {
+    val ref = this.reference ?: return null
+    return (ref.store.externalData as? EntityStore)?.world
+}
+```
+
+### Vector Method Names
+
+Hytale vectors use specific method names:
+
+```kotlin
+val dist = pos1.distanceTo(pos2)     // ✅ (not .distance())
+position.assign(newPosition)          // ✅ (not .set())
+val scaled = direction.scale(2.0)    // ✅ (not .mul())
 ```
 
 ### Game Modes
@@ -167,6 +208,11 @@ TaleLib/
 ├── hologram/      # Hologram system
 ├── input/         # Input handling
 ├── lang/          # Localization support
+├── spawn/         # Spawn point management
+├── projectile/    # Projectile spawning and direction utilities
+├── prefab/        # Prefab config access and rotation
+├── stat/          # Stat modifier management
+├── time/          # World time and dilation
 └── ui/            # UI system
     ├── hud/       # HUD management
     ├── page/      # Interactive pages

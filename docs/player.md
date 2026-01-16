@@ -26,6 +26,27 @@ taleEvents.on<PlayerChatEvent> { event ->
 
 ## PlayerRef Extensions
 
+### Important: PlayerRef Property Access
+
+**Critical**: `PlayerRef` does NOT have direct `world`, `position`, or `ref` properties:
+
+```kotlin
+// ❌ Wrong - these don't exist!
+val world = playerRef.world       // Does not exist!
+val pos = playerRef.position      // Does not exist!
+val ref = playerRef.ref           // Does not exist!
+
+// ✅ Correct
+val ref = playerRef.reference              // Ref<EntityStore>? (not .ref!)
+val pos = playerRef.transform.position     // Vector3d?
+
+// Getting World from PlayerRef (helper pattern)
+private fun PlayerRef.getWorld(): World? {
+    val ref = this.reference ?: return null
+    return (ref.store.externalData as? EntityStore)?.world
+}
+```
+
 ### Messaging
 
 ```kotlin
