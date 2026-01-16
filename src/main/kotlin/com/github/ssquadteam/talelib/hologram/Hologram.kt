@@ -149,4 +149,14 @@ object HologramManager {
      * Gets the number of registered holograms.
      */
     fun count(): Int = holograms.size
+
+    /**
+     * Creates a Hologram wrapper for an existing entity reference.
+     * Used when restoring holograms from persisted entity UUIDs.
+     */
+    fun wrapExisting(entityRef: Ref<EntityStore>, world: World): Hologram {
+        val hologram = Hologram(UUID.randomUUID(), entityRef, world)
+        register(hologram)
+        return hologram
+    }
 }
