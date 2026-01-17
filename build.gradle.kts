@@ -36,6 +36,7 @@ tasks.javadoc {
 }
 
 repositories {
+    maven { url = uri("https://jitpack.io") }
     mavenCentral()
     mavenLocal()
 }
@@ -53,7 +54,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
 
     // HytaleRequest
-    api("com.github.ssquadteam:HytaleMiniFormat:0.0.1")
+    api("com.github.ssquadteam:HytaleMiniFormat:main-SNAPSHOT")
 }
 
 // Server Run Directory

@@ -6,5 +6,3 @@ pluginManagement {
 }
 
 rootProject.name = "TaleLib"
-
-includeBuild("../HytaleMiniFormat")
