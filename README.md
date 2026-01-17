@@ -15,6 +15,7 @@ A flexible, expandable Kotlin library for Hytale plugin development.
 - **Stat System** - Stat modifier management (health, mana, etc.)
 - **Time System** - World time and time dilation control
 - **Prefab System** - Prefab config access and rotation utilities
+- **World Map System** - Custom markers, images, providers, and map settings
 - **Scheduler** - Coroutine-based task scheduling
 - **Config System** - JSON configuration with kotlinx-serialization
 - **And more:** Inventory, Permissions, Sound, Notifications, Teleportation, Input handling
@@ -109,6 +110,7 @@ Detailed documentation for each system is available in the [docs/](docs/) folder
 - [Sound](docs/sound.md) - 2D and 3D sound playback
 - [Teleportation](docs/teleportation.md) - Player teleportation
 - [World](docs/world.md) - World utilities
+- [World Map](docs/worldmap.md) - Map markers, images, providers, and settings
 - [Vectors](docs/vectors.md) - Vector utilities and method names
 
 ## Key Concepts
@@ -215,6 +217,7 @@ TaleLib/
 ├── prefab/        # Prefab config access and rotation
 ├── stat/          # Stat modifier management
 ├── time/          # World time and dilation
+├── worldmap/      # World map markers, images, settings
 └── ui/            # UI system
     ├── hud/       # HUD management
     ├── page/      # Interactive pages
