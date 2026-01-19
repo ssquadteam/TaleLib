@@ -9,7 +9,9 @@ import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset
 import com.hypixel.hytale.server.core.entity.UUIDComponent
+import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
+import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent
 import com.hypixel.hytale.server.core.modules.entity.component.Interactable
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel
@@ -50,6 +52,7 @@ class EntityBuilder(private val world: World) {
     private var roll: Float = 0f
     private var scale: Float = 1.0f
     private var interactable: Boolean = false
+    private var displayName: String? = null
 
     /**
      * Sets the model asset ID (e.g., "Minecart", "Kweebec", "Trork").
@@ -102,6 +105,14 @@ class EntityBuilder(private val world: World) {
      */
     fun interactable(value: Boolean): EntityBuilder {
         this.interactable = value
+        return this
+    }
+
+    /**
+     * Sets the display name (name tag) for the entity.
+     */
+    fun displayName(name: String): EntityBuilder {
+        this.displayName = name
         return this
     }
 
@@ -170,6 +181,14 @@ class EntityBuilder(private val world: World) {
 
             // Ensure UUIDComponent
             holder.ensureComponent(UUIDComponent.getComponentType())
+
+            // Add DisplayNameComponent if name is set
+            if (displayName != null) {
+                holder.addComponent(
+                    DisplayNameComponent.getComponentType(),
+                    DisplayNameComponent(Message.raw(displayName))
+                )
+            }
 
             // Add Interactions if interactable
             if (interactable) {
