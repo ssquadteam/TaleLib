@@ -9,6 +9,7 @@ import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset
 import com.hypixel.hytale.server.core.entity.UUIDComponent
+import com.hypixel.hytale.server.core.entity.nameplate.Nameplate
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
 import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent
@@ -182,12 +183,17 @@ class EntityBuilder(private val world: World) {
             // Ensure UUIDComponent
             holder.ensureComponent(UUIDComponent.getComponentType())
 
-            // Add DisplayNameComponent if name is set
+            // Add DisplayNameComponent and Nameplate if name is set
             val nameToDisplay = displayName
             if (nameToDisplay != null) {
                 holder.addComponent(
                     DisplayNameComponent.getComponentType(),
                     DisplayNameComponent(Message.raw(nameToDisplay))
+                )
+                // Add Nameplate for visible floating text above the entity
+                holder.addComponent(
+                    Nameplate.getComponentType(),
+                    Nameplate(nameToDisplay)
                 )
             }
 
