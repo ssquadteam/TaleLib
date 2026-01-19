@@ -183,10 +183,11 @@ class EntityBuilder(private val world: World) {
             holder.ensureComponent(UUIDComponent.getComponentType())
 
             // Add DisplayNameComponent if name is set
-            if (displayName != null) {
+            val nameToDisplay = displayName
+            if (nameToDisplay != null) {
                 holder.addComponent(
                     DisplayNameComponent.getComponentType(),
-                    DisplayNameComponent(Message.raw(displayName))
+                    DisplayNameComponent(Message.raw(nameToDisplay))
                 )
             }
 
