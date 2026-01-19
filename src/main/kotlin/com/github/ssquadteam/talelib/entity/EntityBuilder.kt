@@ -13,6 +13,7 @@ import com.hypixel.hytale.server.core.entity.nameplate.Nameplate
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
 import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation
 import com.hypixel.hytale.server.core.modules.entity.component.Interactable
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
 import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel
@@ -202,6 +203,12 @@ class EntityBuilder(private val world: World) {
                 holder.addComponent(Interactions.getComponentType(), Interactions())
                 holder.ensureComponent(Interactable.getComponentType())
             }
+
+            // Add HeadRotation component for independent head movement
+            holder.addComponent(
+                HeadRotation.getComponentType(),
+                HeadRotation()
+            )
 
             // Spawn the entity
             val ref: Ref<EntityStore>? = store.addEntity(holder, AddReason.SPAWN)

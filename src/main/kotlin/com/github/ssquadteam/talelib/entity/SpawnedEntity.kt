@@ -6,6 +6,7 @@ import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.universe.world.World
@@ -76,6 +77,24 @@ class SpawnedEntity internal constructor(
      */
     fun setRotation(rotation: Vector3f) {
         setRotation(rotation.x, rotation.y, rotation.z)
+    }
+
+    /**
+     * Sets the entity's head rotation (pitch, yaw, roll).
+     * This controls where the head looks, independent of body rotation.
+     */
+    fun setHeadRotation(pitch: Float, yaw: Float, roll: Float = 0f) {
+        world.execute {
+            val entityStore = world.entityStore ?: return@execute
+            entityStore.store.getComponent(entityRef, HeadRotation.getComponentType())?.rotation?.assign(pitch, yaw, roll)
+        }
+    }
+
+    /**
+     * Sets the entity's head rotation.
+     */
+    fun setHeadRotation(rotation: Vector3f) {
+        setHeadRotation(rotation.x, rotation.y, rotation.z)
     }
 
     /**
