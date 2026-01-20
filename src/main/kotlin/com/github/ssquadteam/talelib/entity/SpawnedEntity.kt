@@ -220,76 +220,79 @@ class SpawnedEntity internal constructor(
     }
 
     /**
-     * Plays an animation on this entity for all Hytale players who can see it.
-     * Uses AnimationSlot.Action by default which doesn't require the animation to exist in the model.
+     * Plays an animation on this entity for nearby Hytale players (within 100 blocks).
+     * Use broadcastAnimation() instead if you want to send to ALL players regardless of distance.
      *
-     * @param animationId The animation ID to play (e.g., "Attack", "Punch")
+     * @param animationId The animation ID to play (e.g., "Hurt", "SwingLeft", "SwingRight")
      * @param slot The animation slot (default: Action)
-     * @param itemAnimationsId Optional item animations ID for player-like animations
+     * @param itemAnimationsId Optional item animations ID (usually null for model animations)
      */
     fun playAnimation(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null) {
         world.execute {
             val store = world.entityStore?.store ?: return@execute
-            val networkIdComponent = store.getComponent(entityRef, NetworkId.getComponentType())
-            if (networkIdComponent == null) {
-                return@execute
-            }
+            val networkIdComponent = store.getComponent(entityRef, NetworkId.getComponentType()) ?: return@execute
 
-            // Update ActiveAnimationComponent to track the current animation
             val activeAnimComp = store.getComponent(entityRef, com.hypixel.hytale.server.core.modules.entity.component.ActiveAnimationComponent.getComponentType())
             activeAnimComp?.setPlayingAnimation(slot, animationId)
 
             val networkId = networkIdComponent.id
             val packet = PlayAnimation(networkId, itemAnimationsId, animationId, slot)
 
-            PlayerUtil.forEachPlayerThatCanSeeEntity(
-                entityRef,
-                { _, playerRefComponent, _ ->
-                    val handler = playerRefComponent.packetHandler
-                    if (handler != null) {
-                        handler.writeNoCache(packet)
+            val entityPos = position ?: return@execute
+            val playerRefs = world.playerRefs ?: return@execute
+
+            playerRefs.forEach { playerRef ->
+                val playerPos = playerRef.transform?.position
+                if (playerPos != null) {
+                    val dx = playerPos.x - entityPos.x
+                    val dy = playerPos.y - entityPos.y
+                    val dz = playerPos.z - entityPos.z
+                    val distSq = dx * dx + dy * dy + dz * dz
+                    if (distSq < 10000) { // 100 block radius
+                        playerRef.packetHandler?.writeNoCache(packet)
                     }
-                },
-                store
-            )
+                }
+            }
         }
     }
 
     /**
-     * Plays an animation using AnimationUtils (the standard Hytale way).
-     * This may be more reliable than the custom implementation.
+     * Broadcasts an animation to ALL players in the world using PlayerUtil.
+     * This bypasses visibility checks and sends to everyone.
      */
-    fun playAnimationStandard(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null, sendToSelf: Boolean = true) {
+    fun broadcastAnimation(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null) {
         world.execute {
             val store = world.entityStore?.store ?: return@execute
+            val networkIdComponent = store.getComponent(entityRef, NetworkId.getComponentType()) ?: return@execute
 
-            // Update ActiveAnimationComponent
-            val activeAnimComp = store.getComponent(entityRef, com.hypixel.hytale.server.core.modules.entity.component.ActiveAnimationComponent.getComponentType())
-            activeAnimComp?.setPlayingAnimation(slot, animationId)
+            val networkId = networkIdComponent.id
+            val packet = PlayAnimation(networkId, itemAnimationsId, animationId, slot)
 
-            com.hypixel.hytale.server.core.entity.AnimationUtils.playAnimation(
-                entityRef,
-                slot,
-                itemAnimationsId,
-                animationId,
-                sendToSelf,
-                store
-            )
+            PlayerUtil.broadcastPacketToPlayersNoCache(store, packet)
         }
     }
 
     /**
-     * Plays a punch/attack animation using the "Fist" item animations.
-     * This is designed for player-like entities performing unarmed attacks.
-     *
-     * @param animationId The attack animation ID (e.g., "PrimaryAttack", "Attack")
+     * Plays a model animation (no itemAnimationsId).
+     * @param animationId The animation ID (e.g., "Hurt", "SwingLeft", "SwingRight")
+     * @param slot The animation slot (default: Action)
      */
-    fun playPunchAnimation(animationId: String = "PrimaryAttack") {
-        playAnimation(animationId, AnimationSlot.Action, "Fist")
+    fun playModelAnimation(animationId: String, slot: AnimationSlot = AnimationSlot.Action) {
+        broadcastAnimation(animationId, slot, null)
     }
 
+    /**
+     * Plays the hurt animation on this entity.
+     */
+    fun playHurtAnimation() {
+        broadcastAnimation("Hurt", AnimationSlot.Action, null)
+    }
+
+    /**
+     * Stops the animation in the specified slot.
+     */
     fun stopAnimation(slot: AnimationSlot = AnimationSlot.Action) {
-        playAnimation(null, slot, null)
+        broadcastAnimation(null, slot, null)
     }
 
     /**
