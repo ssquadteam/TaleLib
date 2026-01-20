@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.RemoveReason
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
+import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
@@ -95,6 +96,16 @@ class SpawnedEntity internal constructor(
      */
     fun setHeadRotation(rotation: Vector3f) {
         setHeadRotation(rotation.x, rotation.y, rotation.z)
+    }
+
+    /**
+     * Sets the entity's crouching state.
+     */
+    fun setCrouching(crouching: Boolean) {
+        world.execute {
+            val entityStore = world.entityStore ?: return@execute
+            entityStore.store.getComponent(entityRef, MovementStatesComponent.getComponentType())?.movementStates?.crouching = crouching
+        }
     }
 
     /**
