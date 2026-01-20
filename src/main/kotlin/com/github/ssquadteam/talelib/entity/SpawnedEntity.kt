@@ -6,6 +6,8 @@ import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
+import com.hypixel.hytale.protocol.AnimationSlot
+import com.hypixel.hytale.protocol.packets.entities.PlayAnimation
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
@@ -13,6 +15,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause
+import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId
+import com.hypixel.hytale.server.core.universe.world.PlayerUtil
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import java.util.*
@@ -208,6 +212,67 @@ class SpawnedEntity internal constructor(
     fun getBoundingBox(): com.hypixel.hytale.math.shape.Box? {
         val entityStore = world.entityStore ?: return null
         return entityStore.store.getComponent(entityRef, BoundingBox.getComponentType())?.boundingBox
+    }
+
+    fun getNetworkId(): Int? {
+        val entityStore = world.entityStore ?: return null
+        return entityStore.store.getComponent(entityRef, NetworkId.getComponentType())?.id
+    }
+
+    /**
+     * Plays an animation on this entity for all Hytale players who can see it.
+     * Uses AnimationSlot.Action by default which doesn't require the animation to exist in the model.
+     *
+     * @param animationId The animation ID to play (e.g., "Attack", "Punch")
+     * @param slot The animation slot (default: Action)
+     * @param itemAnimationsId Optional item animations ID
+     */
+    fun playAnimation(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null) {
+        world.execute {
+            val store = world.entityStore?.store ?: return@execute
+            val networkIdComponent = store.getComponent(entityRef, NetworkId.getComponentType())
+            if (networkIdComponent == null) {
+                return@execute
+            }
+            val networkId = networkIdComponent.id
+            val packet = PlayAnimation(networkId, itemAnimationsId, animationId, slot)
+
+            // Track how many players we sent to for debugging
+            var playerCount = 0
+            PlayerUtil.forEachPlayerThatCanSeeEntity(
+                entityRef,
+                { _, playerRefComponent, _ ->
+                    val handler = playerRefComponent.packetHandler
+                    if (handler != null) {
+                        handler.writeNoCache(packet)
+                        playerCount++
+                    }
+                },
+                store
+            )
+        }
+    }
+
+    /**
+     * Plays an animation using AnimationUtils (the standard Hytale way).
+     * This may be more reliable than the custom implementation.
+     */
+    fun playAnimationStandard(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null, sendToSelf: Boolean = true) {
+        world.execute {
+            val store = world.entityStore?.store ?: return@execute
+            com.hypixel.hytale.server.core.entity.AnimationUtils.playAnimation(
+                entityRef,
+                slot,
+                itemAnimationsId,
+                animationId,
+                sendToSelf,
+                store
+            )
+        }
+    }
+
+    fun stopAnimation(slot: AnimationSlot = AnimationSlot.Action) {
+        playAnimation(null, slot, null)
     }
 
     /**
