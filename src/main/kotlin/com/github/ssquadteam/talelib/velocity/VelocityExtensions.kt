@@ -3,6 +3,7 @@ package com.github.ssquadteam.talelib.velocity
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.protocol.ChangeVelocityType
+import com.hypixel.hytale.protocol.packets.entities.ChangeVelocity
 import com.hypixel.hytale.server.core.modules.physics.component.Velocity
 import com.hypixel.hytale.server.core.modules.splitvelocity.VelocityConfig
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -12,7 +13,8 @@ import kotlin.math.sqrt
 
 /**
  * Extension functions for applying velocity to entities.
- * Uses the instruction system which the PlayerVelocityInstructionSystem processes.
+ * For players, sends ChangeVelocity packet directly to the client.
+ * For non-player entities, uses the instruction system.
  */
 
 fun Ref<EntityStore>.applyVelocity(
@@ -23,7 +25,11 @@ fun Ref<EntityStore>.applyVelocity(
     type: ChangeVelocityType = ChangeVelocityType.Add,
     config: VelocityConfig? = null
 ) {
-    val velocityComponent = world.entityStore.store.getComponent(this, Velocity.getComponentType()) ?: return
+    val velocityComponent = this.store.getComponent(this, Velocity.getComponentType())
+        ?: world.entityStore.store.getComponent(this, Velocity.getComponentType())
+    if (velocityComponent == null) {
+        return
+    }
     velocityComponent.addInstruction(Vector3d(x, y, z), config, type)
 }
 
@@ -61,6 +67,22 @@ fun Ref<EntityStore>.applyKnockback(
     applyVelocity(world, vx, verticalForce, vz, ChangeVelocityType.Add)
 }
 
+fun PlayerRef.sendVelocityPacket(
+    x: Float,
+    y: Float,
+    z: Float,
+    type: ChangeVelocityType = ChangeVelocityType.Add,
+    config: VelocityConfig? = null
+): Boolean {
+    val handler = this.packetHandler
+    if (handler == null) {
+        return false
+    }
+    val packet = ChangeVelocity(x, y, z, type, config?.toPacket())
+    handler.writeNoCache(packet)
+    return true
+}
+
 fun PlayerRef.applyVelocity(
     x: Double,
     y: Double,
@@ -68,11 +90,7 @@ fun PlayerRef.applyVelocity(
     type: ChangeVelocityType = ChangeVelocityType.Add,
     config: VelocityConfig? = null
 ) {
-    val ref = this.reference ?: return
-    val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    world.execute {
-        ref.applyVelocity(world, x, y, z, type, config)
-    }
+    sendVelocityPacket(x.toFloat(), y.toFloat(), z.toFloat(), type, config)
 }
 
 fun PlayerRef.applyVelocity(
@@ -80,11 +98,7 @@ fun PlayerRef.applyVelocity(
     type: ChangeVelocityType = ChangeVelocityType.Add,
     config: VelocityConfig? = null
 ) {
-    val ref = this.reference ?: return
-    val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    world.execute {
-        ref.applyVelocity(world, velocity, type, config)
-    }
+    sendVelocityPacket(velocity.x.toFloat(), velocity.y.toFloat(), velocity.z.toFloat(), type, config)
 }
 
 fun PlayerRef.applyKnockback(
@@ -92,17 +106,28 @@ fun PlayerRef.applyKnockback(
     sourceZ: Double,
     horizontalForce: Double = 0.4,
     verticalForce: Double = 0.36
-) {
-    val ref = this.reference ?: return
-    val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    val targetPos = this.transform.position
-
-    world.execute {
-        ref.applyKnockback(world, sourceX, sourceZ, targetPos.x, targetPos.z, horizontalForce, verticalForce)
+): Boolean {
+    val targetPos = this.transform?.position
+    if (targetPos == null) {
+        return false
     }
+
+    val dx = targetPos.x - sourceX
+    val dz = targetPos.z - sourceZ
+    val distance = sqrt(dx * dx + dz * dz)
+
+    val (vx, vz) = if (distance > 0.001) {
+        val normalizedX = dx / distance
+        val normalizedZ = dz / distance
+        Pair(normalizedX * horizontalForce, normalizedZ * horizontalForce)
+    } else {
+        Pair(0.0, 0.0)
+    }
+
+    return sendVelocityPacket(vx.toFloat(), verticalForce.toFloat(), vz.toFloat(), ChangeVelocityType.Add, null)
 }
 
 fun PlayerRef.applyKnockbackFrom(attacker: PlayerRef, horizontalForce: Double = 0.4, verticalForce: Double = 0.36) {
-    val attackerPos = attacker.transform.position
+    val attackerPos = attacker.transform?.position ?: return
     applyKnockback(attackerPos.x, attackerPos.z, horizontalForce, verticalForce)
 }
