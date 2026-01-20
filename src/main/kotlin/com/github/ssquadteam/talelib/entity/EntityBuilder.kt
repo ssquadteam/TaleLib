@@ -9,6 +9,7 @@ import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset
 import com.hypixel.hytale.server.core.entity.UUIDComponent
+import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
@@ -208,6 +209,12 @@ class EntityBuilder(private val world: World) {
             holder.addComponent(
                 HeadRotation.getComponentType(),
                 HeadRotation()
+            )
+
+            // Add MovementStatesComponent for crouching/movement state sync
+            holder.addComponent(
+                MovementStatesComponent.getComponentType(),
+                MovementStatesComponent()
             )
 
             // Spawn the entity
