@@ -34,26 +34,34 @@ fun Ref<EntityStore>.damageFrom(world: World, attacker: Ref<EntityStore>, amount
 fun PlayerRef.damage(block: DamageBuilder.() -> Unit) {
     val ref = this.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    ref.damage(world, block)
+    world.execute {
+        ref.damage(world, block)
+    }
 }
 
 fun PlayerRef.damage(amount: Float, cause: DamageCause? = null) {
     val ref = this.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    ref.damage(world, amount, cause)
+    world.execute {
+        ref.damage(world, amount, cause)
+    }
 }
 
 fun PlayerRef.damageFrom(attacker: Ref<EntityStore>, amount: Float, cause: DamageCause? = null) {
     val ref = this.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    ref.damageFrom(world, attacker, amount, cause)
+    world.execute {
+        ref.damageFrom(world, attacker, amount, cause)
+    }
 }
 
 fun PlayerRef.damageFrom(attacker: PlayerRef, amount: Float, cause: DamageCause? = null) {
     val ref = this.reference ?: return
     val attackerRef = attacker.reference ?: return
     val world = (ref.store.externalData as? EntityStore)?.world ?: return
-    ref.damageFrom(world, attackerRef, amount, cause)
+    world.execute {
+        ref.damageFrom(world, attackerRef, amount, cause)
+    }
 }
 
 fun PlayerRef.damageWithKnockback(
@@ -84,12 +92,14 @@ fun PlayerRef.damageWithKnockbackFrom(
     val attackerPos = attacker.transform.position
     val targetPos = this.transform.position
 
-    ref.damage(world) {
-        amount(amount)
-        cause(actualCause)
-        fromPlayer(attacker)
-        knockback {
-            awayFrom(attackerPos.x, attackerPos.z, targetPos.x, targetPos.z, knockbackForce, verticalForce)
+    world.execute {
+        ref.damage(world) {
+            amount(amount)
+            cause(actualCause)
+            fromPlayer(attacker)
+            knockback {
+                awayFrom(attackerPos.x, attackerPos.z, targetPos.x, targetPos.z, knockbackForce, verticalForce)
+            }
         }
     }
 }

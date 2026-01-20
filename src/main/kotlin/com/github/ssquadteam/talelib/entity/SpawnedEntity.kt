@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class SpawnedEntity internal constructor(
     val id: UUID,
-    internal val entityRef: Ref<EntityStore>,
+    val entityRef: Ref<EntityStore>,
     private val world: World,
     val modelAssetId: String
 ) {
@@ -166,7 +166,9 @@ class SpawnedEntity internal constructor(
      */
     fun damage(amount: Float, cause: DamageCause? = null) {
         val actualCause = cause ?: getDamageCause("Physical") ?: DamageCause.COMMAND ?: return
-        entityRef.damage(world, amount, actualCause)
+        world.execute {
+            entityRef.damage(world, amount, actualCause)
+        }
     }
 
     /**
@@ -176,7 +178,9 @@ class SpawnedEntity internal constructor(
      */
     fun damage(amount: Float, causeName: String) {
         val cause = getDamageCause(causeName) ?: return
-        entityRef.damage(world, amount, cause)
+        world.execute {
+            entityRef.damage(world, amount, cause)
+        }
     }
 
     /**
@@ -184,7 +188,10 @@ class SpawnedEntity internal constructor(
      * @param cause The damage cause (defaults to COMMAND)
      */
     fun kill(cause: DamageCause? = null) {
-        damage(Float.MAX_VALUE, cause)
+        val actualCause = cause ?: DamageCause.COMMAND ?: return
+        world.execute {
+            entityRef.damage(world, Float.MAX_VALUE, actualCause)
+        }
     }
 
     /**
