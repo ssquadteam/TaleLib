@@ -109,6 +109,39 @@ class SpawnedEntity internal constructor(
     }
 
     /**
+     * Updates the entity's movement states for animation.
+     * @param idle True if the entity is standing still
+     * @param walking True if the entity is walking
+     * @param running True if the entity is running
+     * @param sprinting True if the entity is sprinting
+     * @param jumping True if the entity is jumping
+     * @param falling True if the entity is falling
+     * @param onGround True if the entity is on the ground
+     */
+    fun setMovementState(
+        idle: Boolean = true,
+        walking: Boolean = false,
+        running: Boolean = false,
+        sprinting: Boolean = false,
+        jumping: Boolean = false,
+        falling: Boolean = false,
+        onGround: Boolean = true
+    ) {
+        world.execute {
+            val entityStore = world.entityStore ?: return@execute
+            val states = entityStore.store.getComponent(entityRef, MovementStatesComponent.getComponentType())?.movementStates ?: return@execute
+            states.idle = idle
+            states.horizontalIdle = idle
+            states.walking = walking
+            states.running = running
+            states.sprinting = sprinting
+            states.jumping = jumping
+            states.falling = falling
+            states.onGround = onGround
+        }
+    }
+
+    /**
      * Gets the entity's model component.
      */
     fun getModel(): Model? {
