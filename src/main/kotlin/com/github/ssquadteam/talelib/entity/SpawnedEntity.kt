@@ -117,6 +117,11 @@ class SpawnedEntity internal constructor(
      * @param jumping True if the entity is jumping
      * @param falling True if the entity is falling
      * @param onGround True if the entity is on the ground
+     * @param sliding True if the entity is sliding (can be used for backwards movement)
+     * @param swimming True if the entity is swimming
+     * @param climbing True if the entity is climbing
+     * @param flying True if the entity is flying
+     * @param gliding True if the entity is gliding
      */
     fun setMovementState(
         idle: Boolean = true,
@@ -125,7 +130,12 @@ class SpawnedEntity internal constructor(
         sprinting: Boolean = false,
         jumping: Boolean = false,
         falling: Boolean = false,
-        onGround: Boolean = true
+        onGround: Boolean = true,
+        sliding: Boolean = false,
+        swimming: Boolean = false,
+        climbing: Boolean = false,
+        flying: Boolean = false,
+        gliding: Boolean = false
     ) {
         world.execute {
             val entityStore = world.entityStore ?: return@execute
@@ -138,6 +148,11 @@ class SpawnedEntity internal constructor(
             states.jumping = jumping
             states.falling = falling
             states.onGround = onGround
+            states.sliding = sliding
+            states.swimming = swimming
+            states.climbing = climbing
+            states.flying = flying
+            states.gliding = gliding
         }
     }
 
