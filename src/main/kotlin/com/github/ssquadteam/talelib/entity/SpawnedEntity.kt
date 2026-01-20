@@ -1,5 +1,7 @@
 package com.github.ssquadteam.talelib.entity
 
+import com.github.ssquadteam.talelib.damage.damage
+import com.github.ssquadteam.talelib.damage.getDamageCause
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
 import com.hypixel.hytale.math.vector.Vector3d
@@ -10,6 +12,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
+import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import java.util.*
@@ -154,6 +157,34 @@ class SpawnedEntity internal constructor(
             states.flying = flying
             states.gliding = gliding
         }
+    }
+
+    /**
+     * Applies damage to the entity.
+     * @param amount The amount of damage to apply
+     * @param cause The damage cause (defaults to "Physical" or COMMAND)
+     */
+    fun damage(amount: Float, cause: DamageCause? = null) {
+        val actualCause = cause ?: getDamageCause("Physical") ?: DamageCause.COMMAND ?: return
+        entityRef.damage(world, amount, actualCause)
+    }
+
+    /**
+     * Applies damage to the entity with a specific cause name.
+     * @param amount The amount of damage to apply
+     * @param causeName The name of the damage cause (e.g., "Physical", "Fall", "Fire")
+     */
+    fun damage(amount: Float, causeName: String) {
+        val cause = getDamageCause(causeName) ?: return
+        entityRef.damage(world, amount, cause)
+    }
+
+    /**
+     * Kills the entity by applying maximum damage.
+     * @param cause The damage cause (defaults to COMMAND)
+     */
+    fun kill(cause: DamageCause? = null) {
+        damage(Float.MAX_VALUE, cause)
     }
 
     /**
