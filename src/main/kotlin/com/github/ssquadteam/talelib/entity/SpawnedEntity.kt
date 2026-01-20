@@ -7,6 +7,9 @@ import com.hypixel.hytale.component.RemoveReason
 import com.hypixel.hytale.math.vector.Vector3d
 import com.hypixel.hytale.math.vector.Vector3f
 import com.hypixel.hytale.protocol.AnimationSlot
+import com.hypixel.hytale.protocol.ComponentUpdate
+import com.hypixel.hytale.protocol.ComponentUpdateType
+import com.hypixel.hytale.protocol.Equipment
 import com.hypixel.hytale.protocol.packets.entities.PlayAnimation
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
@@ -15,6 +18,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause
+import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId
 import com.hypixel.hytale.server.core.universe.world.PlayerUtil
 import com.hypixel.hytale.server.core.universe.world.World
@@ -293,6 +297,36 @@ class SpawnedEntity internal constructor(
      */
     fun stopAnimation(slot: AnimationSlot = AnimationSlot.Action) {
         broadcastAnimation(null, slot, null)
+    }
+
+    /**
+     * Sets the entity's held item (main hand) for display purposes.
+     * This broadcasts an equipment update to all viewers (Hytale players who can see this entity).
+     */
+    fun setHeldItem(rightHandItemId: String = "Empty", leftHandItemId: String = "Empty") {
+        world.execute {
+            val entityStore = world.entityStore ?: return@execute
+            val store = entityStore.store
+
+            val visibleComponent = store.getComponent(entityRef, EntityTrackerSystems.Visible.getComponentType())
+                ?: return@execute
+
+            val equipment = Equipment()
+            equipment.rightHandItemId = rightHandItemId
+            equipment.leftHandItemId = leftHandItemId
+            equipment.armorIds = arrayOf("", "", "", "")
+
+            val update = ComponentUpdate()
+            update.type = ComponentUpdateType.Equipment
+            update.equipment = equipment 
+
+            for (viewer in visibleComponent.visibleTo.values) {
+                try {
+                    viewer.queueUpdate(entityRef, update)
+                } catch (e: Exception) {
+                }
+            }
+        }
     }
 
     /**
