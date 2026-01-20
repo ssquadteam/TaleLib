@@ -225,7 +225,7 @@ class SpawnedEntity internal constructor(
      *
      * @param animationId The animation ID to play (e.g., "Attack", "Punch")
      * @param slot The animation slot (default: Action)
-     * @param itemAnimationsId Optional item animations ID
+     * @param itemAnimationsId Optional item animations ID for player-like animations
      */
     fun playAnimation(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null) {
         world.execute {
@@ -234,18 +234,20 @@ class SpawnedEntity internal constructor(
             if (networkIdComponent == null) {
                 return@execute
             }
+
+            // Update ActiveAnimationComponent to track the current animation
+            val activeAnimComp = store.getComponent(entityRef, com.hypixel.hytale.server.core.modules.entity.component.ActiveAnimationComponent.getComponentType())
+            activeAnimComp?.setPlayingAnimation(slot, animationId)
+
             val networkId = networkIdComponent.id
             val packet = PlayAnimation(networkId, itemAnimationsId, animationId, slot)
 
-            // Track how many players we sent to for debugging
-            var playerCount = 0
             PlayerUtil.forEachPlayerThatCanSeeEntity(
                 entityRef,
                 { _, playerRefComponent, _ ->
                     val handler = playerRefComponent.packetHandler
                     if (handler != null) {
                         handler.writeNoCache(packet)
-                        playerCount++
                     }
                 },
                 store
@@ -260,6 +262,11 @@ class SpawnedEntity internal constructor(
     fun playAnimationStandard(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null, sendToSelf: Boolean = true) {
         world.execute {
             val store = world.entityStore?.store ?: return@execute
+
+            // Update ActiveAnimationComponent
+            val activeAnimComp = store.getComponent(entityRef, com.hypixel.hytale.server.core.modules.entity.component.ActiveAnimationComponent.getComponentType())
+            activeAnimComp?.setPlayingAnimation(slot, animationId)
+
             com.hypixel.hytale.server.core.entity.AnimationUtils.playAnimation(
                 entityRef,
                 slot,
@@ -269,6 +276,16 @@ class SpawnedEntity internal constructor(
                 store
             )
         }
+    }
+
+    /**
+     * Plays a punch/attack animation using the "Fist" item animations.
+     * This is designed for player-like entities performing unarmed attacks.
+     *
+     * @param animationId The attack animation ID (e.g., "PrimaryAttack", "Attack")
+     */
+    fun playPunchAnimation(animationId: String = "PrimaryAttack") {
+        playAnimation(animationId, AnimationSlot.Action, "Fist")
     }
 
     fun stopAnimation(slot: AnimationSlot = AnimationSlot.Action) {

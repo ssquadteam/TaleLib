@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate
 import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.modules.entity.component.ActiveAnimationComponent
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox
 import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameComponent
 import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation
@@ -215,6 +216,12 @@ class EntityBuilder(private val world: World) {
             holder.addComponent(
                 MovementStatesComponent.getComponentType(),
                 MovementStatesComponent()
+            )
+
+            // Add ActiveAnimationComponent for animation tracking
+            holder.addComponent(
+                ActiveAnimationComponent.getComponentType(),
+                ActiveAnimationComponent()
             )
 
             // Spawn the entity
