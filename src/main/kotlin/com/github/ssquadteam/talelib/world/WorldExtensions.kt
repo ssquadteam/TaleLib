@@ -4,6 +4,8 @@ import com.hypixel.hytale.math.util.ChunkUtil
 import com.hypixel.hytale.server.core.universe.Universe
 import com.hypixel.hytale.server.core.universe.world.World
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * World-related extension functions and utilities for TaleLib.
@@ -150,5 +152,108 @@ fun World.pregenerateChunksAround(blockX: Int, blockZ: Int, radiusChunks: Int): 
         CompletableFuture.allOf(*futures.toTypedArray()).thenApply { count }
     } catch (e: Throwable) {
         CompletableFuture.completedFuture(0)
+    }
+}
+
+fun World.isFullyOperational(): Boolean {
+    return try {
+        if (!this.isStarted) return false
+
+        val entityStore = this.entityStore ?: return false
+        if (entityStore.store == null) return false
+
+        val chunkStore = this.chunkStore ?: return false
+        if (chunkStore.store == null) return false
+
+        true
+    } catch (e: Throwable) {
+        false
+    }
+}
+
+/**
+ * Waits for the world to become fully operational with a timeout.
+ * Returns a CompletableFuture that completes with true when ready,
+ * or false if timeout is reached.
+ *
+ * @param timeoutMs Maximum time to wait in milliseconds
+ * @param checkIntervalMs How often to check readiness (default 100ms)
+ */
+fun World.awaitFullyOperational(
+    timeoutMs: Long = 30000,
+    checkIntervalMs: Long = 100
+): CompletableFuture<Boolean> {
+    val future = CompletableFuture<Boolean>()
+    val startTime = System.currentTimeMillis()
+    val world = this
+
+    val executor = Executors.newSingleThreadScheduledExecutor { r ->
+        Thread(r, "WorldReadinessChecker").apply { isDaemon = true }
+    }
+
+    val checkTask: Runnable = object : Runnable {
+        override fun run() {
+            try {
+                if (world.isFullyOperational()) {
+                    try {
+                        world.execute {
+                            future.complete(true)
+                        }
+                    } catch (e: Exception) {
+                        val elapsed = System.currentTimeMillis() - startTime
+                        if (elapsed >= timeoutMs) {
+                            future.complete(false)
+                            executor.shutdown()
+                        } else {
+                            executor.schedule(this, checkIntervalMs, TimeUnit.MILLISECONDS)
+                        }
+                        return
+                    }
+                    executor.shutdown()
+                    return
+                }
+
+                val elapsed = System.currentTimeMillis() - startTime
+                if (elapsed >= timeoutMs) {
+                    future.complete(false)
+                    executor.shutdown()
+                    return
+                }
+
+                // Schedule next check
+                executor.schedule(this, checkIntervalMs, TimeUnit.MILLISECONDS)
+            } catch (e: Exception) {
+                future.complete(false)
+                executor.shutdown()
+            }
+        }
+    }
+
+    executor.schedule(checkTask, checkIntervalMs, TimeUnit.MILLISECONDS)
+    return future
+}
+
+/**
+ * Pre-generates chunks and waits for them to complete (blocking).
+ * Returns the number of chunks successfully loaded, or -1 if ChunkStore is not ready.
+ *
+ * @param blockX Center block X coordinate
+ * @param blockZ Center block Z coordinate
+ * @param radiusChunks Radius in Hytale chunks (32 blocks each)
+ * @param timeoutMs Maximum time to wait for all chunks
+ */
+fun World.pregenerateChunksAroundBlocking(
+    blockX: Int,
+    blockZ: Int,
+    radiusChunks: Int,
+    timeoutMs: Long = 60000
+): Int {
+    val chunkStore = this.chunkStore ?: return -1
+
+    val future = pregenerateChunksAround(blockX, blockZ, radiusChunks)
+    return try {
+        future.get(timeoutMs, TimeUnit.MILLISECONDS)
+    } catch (e: Exception) {
+        -1
     }
 }
