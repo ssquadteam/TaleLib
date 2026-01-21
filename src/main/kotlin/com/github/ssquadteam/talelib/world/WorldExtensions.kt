@@ -71,3 +71,34 @@ fun worldCount(): Int {
         0
     }
 }
+
+/**
+ * Check if the world thread is started and accepting tasks.
+ * World extends TickingThread which provides isStarted.
+ */
+fun World.isWorldThreadStarted(): Boolean {
+    return try {
+        this.isStarted
+    } catch (e: Throwable) {
+        false
+    }
+}
+
+/**
+ * Start the world thread if not already started.
+ * Returns a CompletableFuture that completes when the world is ready.
+ * Safe to call if already started (will return completed future).
+ */
+fun World.ensureStarted(): java.util.concurrent.CompletableFuture<Void> {
+    return try {
+        if (!this.isStarted) {
+            this.start()
+        } else {
+            java.util.concurrent.CompletableFuture.completedFuture(null)
+        }
+    } catch (e: IllegalStateException) {
+        java.util.concurrent.CompletableFuture.completedFuture(null)
+    } catch (e: Throwable) {
+        java.util.concurrent.CompletableFuture.failedFuture(e)
+    }
+}
