@@ -1,7 +1,9 @@
 package com.github.ssquadteam.talelib.world
 
+import com.hypixel.hytale.math.util.ChunkUtil
 import com.hypixel.hytale.server.core.universe.Universe
 import com.hypixel.hytale.server.core.universe.world.World
+import java.util.concurrent.CompletableFuture
 
 /**
  * World-related extension functions and utilities for TaleLib.
@@ -89,16 +91,64 @@ fun World.isWorldThreadStarted(): Boolean {
  * Returns a CompletableFuture that completes when the world is ready.
  * Safe to call if already started (will return completed future).
  */
-fun World.ensureStarted(): java.util.concurrent.CompletableFuture<Void> {
+fun World.ensureStarted(): CompletableFuture<Void> {
     return try {
         if (!this.isStarted) {
             this.start()
         } else {
-            java.util.concurrent.CompletableFuture.completedFuture(null)
+            CompletableFuture.completedFuture(null)
         }
     } catch (e: IllegalStateException) {
-        java.util.concurrent.CompletableFuture.completedFuture(null)
+        CompletableFuture.completedFuture(null)
     } catch (e: Throwable) {
-        java.util.concurrent.CompletableFuture.failedFuture(e)
+        CompletableFuture.failedFuture(e)
+    }
+}
+
+/**
+ * Request a chunk to be loaded or generated.
+ * @param chunkX Hytale chunk X coordinate (32-block chunks)
+ * @param chunkZ Hytale chunk Z coordinate (32-block chunks)
+ * @return CompletableFuture that completes when chunk is ready
+ */
+fun World.ensureChunkGenerated(chunkX: Int, chunkZ: Int): CompletableFuture<Boolean> {
+    return try {
+        val chunkStore = this.chunkStore ?: return CompletableFuture.completedFuture(false)
+        val chunkIndex = ChunkUtil.indexChunk(chunkX, chunkZ)
+        chunkStore.getChunkReferenceAsync(chunkIndex, 0).thenApply { ref ->
+            ref != null && ref.isValid
+        }
+    } catch (e: Throwable) {
+        CompletableFuture.completedFuture(false)
+    }
+}
+
+/**
+ * Pre-generate chunks in a radius around a block position.
+ * @param blockX World block X coordinate
+ * @param blockZ World block Z coordinate
+ * @param radiusChunks Radius in Hytale chunks (32-block chunks)
+ * @return CompletableFuture that completes when all chunks are ready
+ */
+fun World.pregenerateChunksAround(blockX: Int, blockZ: Int, radiusChunks: Int): CompletableFuture<Int> {
+    return try {
+        val chunkStore = this.chunkStore ?: return CompletableFuture.completedFuture(0)
+        val centerChunkX = blockX shr 5
+        val centerChunkZ = blockZ shr 5
+
+        val futures = mutableListOf<CompletableFuture<*>>()
+        var count = 0
+
+        for (dx in -radiusChunks..radiusChunks) {
+            for (dz in -radiusChunks..radiusChunks) {
+                val chunkIndex = ChunkUtil.indexChunk(centerChunkX + dx, centerChunkZ + dz)
+                futures.add(chunkStore.getChunkReferenceAsync(chunkIndex, 0))
+                count++
+            }
+        }
+
+        CompletableFuture.allOf(*futures.toTypedArray()).thenApply { count }
+    } catch (e: Throwable) {
+        CompletableFuture.completedFuture(0)
     }
 }
