@@ -61,7 +61,9 @@ class SpawnedEntity internal constructor(
      * Sets the entity's position.
      */
     fun setPosition(x: Double, y: Double, z: Double) {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
             entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.position?.assign(x, y, z)
         }
@@ -78,7 +80,9 @@ class SpawnedEntity internal constructor(
      * Sets the entity's rotation (yaw, pitch, roll).
      */
     fun setRotation(yaw: Float, pitch: Float, roll: Float = 0f) {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
             entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.rotation?.assign(yaw, pitch, roll)
         }
@@ -96,7 +100,9 @@ class SpawnedEntity internal constructor(
      * This controls where the head looks, independent of body rotation.
      */
     fun setHeadRotation(pitch: Float, yaw: Float, roll: Float = 0f) {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
             entityStore.store.getComponent(entityRef, HeadRotation.getComponentType())?.rotation?.assign(pitch, yaw, roll)
         }
@@ -113,7 +119,9 @@ class SpawnedEntity internal constructor(
      * Sets the entity's crouching state.
      */
     fun setCrouching(crouching: Boolean) {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
             entityStore.store.getComponent(entityRef, MovementStatesComponent.getComponentType())?.movementStates?.crouching = crouching
         }
@@ -148,7 +156,9 @@ class SpawnedEntity internal constructor(
         flying: Boolean = false,
         gliding: Boolean = false
     ) {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
             val states = entityStore.store.getComponent(entityRef, MovementStatesComponent.getComponentType())?.movementStates ?: return@execute
             states.idle = idle
@@ -173,8 +183,10 @@ class SpawnedEntity internal constructor(
      * @param cause The damage cause (defaults to "Physical" or COMMAND)
      */
     fun damage(amount: Float, cause: DamageCause? = null) {
+        if (!entityRef.isValid) return
         val actualCause = cause ?: getDamageCause("Physical") ?: DamageCause.COMMAND ?: return
         world.execute {
+            if (!entityRef.isValid) return@execute
             entityRef.damage(world, amount, actualCause)
         }
     }
@@ -185,8 +197,10 @@ class SpawnedEntity internal constructor(
      * @param causeName The name of the damage cause (e.g., "Physical", "Fall", "Fire")
      */
     fun damage(amount: Float, causeName: String) {
+        if (!entityRef.isValid) return
         val cause = getDamageCause(causeName) ?: return
         world.execute {
+            if (!entityRef.isValid) return@execute
             entityRef.damage(world, amount, cause)
         }
     }
@@ -196,8 +210,10 @@ class SpawnedEntity internal constructor(
      * @param cause The damage cause (defaults to COMMAND)
      */
     fun kill(cause: DamageCause? = null) {
+        if (!entityRef.isValid) return
         val actualCause = cause ?: DamageCause.COMMAND ?: return
         world.execute {
+            if (!entityRef.isValid) return@execute
             entityRef.damage(world, Float.MAX_VALUE, actualCause)
         }
     }
@@ -232,7 +248,9 @@ class SpawnedEntity internal constructor(
      * @param itemAnimationsId Optional item animations ID (usually null for model animations)
      */
     fun playAnimation(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null) {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val store = world.entityStore?.store ?: return@execute
             val networkIdComponent = store.getComponent(entityRef, NetworkId.getComponentType()) ?: return@execute
 
@@ -265,7 +283,9 @@ class SpawnedEntity internal constructor(
      * This bypasses visibility checks and sends to everyone.
      */
     fun broadcastAnimation(animationId: String?, slot: AnimationSlot = AnimationSlot.Action, itemAnimationsId: String? = null) {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val store = world.entityStore?.store ?: return@execute
             val networkIdComponent = store.getComponent(entityRef, NetworkId.getComponentType()) ?: return@execute
 
@@ -304,7 +324,9 @@ class SpawnedEntity internal constructor(
      * This broadcasts an equipment update to all viewers (Hytale players who can see this entity).
      */
     fun setHeldItem(rightHandItemId: String = "Empty", leftHandItemId: String = "Empty") {
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
             val store = entityStore.store
 
@@ -318,7 +340,7 @@ class SpawnedEntity internal constructor(
 
             val update = ComponentUpdate()
             update.type = ComponentUpdateType.Equipment
-            update.equipment = equipment 
+            update.equipment = equipment
 
             for (viewer in visibleComponent.visibleTo.values) {
                 try {
@@ -333,11 +355,13 @@ class SpawnedEntity internal constructor(
      * Removes the entity from the world.
      */
     fun remove() {
+        SpawnedEntityManager.unregister(id)
+        if (!entityRef.isValid) return
         world.execute {
+            if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
             entityStore.store.removeEntity(entityRef, EntityStore.REGISTRY.newHolder(), RemoveReason.REMOVE)
         }
-        SpawnedEntityManager.unregister(id)
     }
 
     /**
