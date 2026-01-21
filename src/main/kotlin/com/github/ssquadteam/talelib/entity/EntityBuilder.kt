@@ -157,9 +157,10 @@ class EntityBuilder(private val world: World) {
             )
 
             // Add PersistentModel for model reference
+            val modelReference = Model.ModelReference(modelAssetId, scale, null, false)
             holder.addComponent(
                 PersistentModel.getComponentType(),
-                PersistentModel(model.toReference())
+                PersistentModel(modelReference)
             )
 
             // Add ModelComponent for the model itself
