@@ -58,6 +58,17 @@ class EntityBuilder(private val world: World) {
     private var interactable: Boolean = false
     private var displayName: String? = null
 
+    internal fun getModelAssetId(): String = modelAssetId
+    internal fun getX(): Double = x
+    internal fun getY(): Double = y
+    internal fun getZ(): Double = z
+    internal fun getYaw(): Float = yaw
+    internal fun getPitch(): Float = pitch
+    internal fun getRoll(): Float = roll
+    internal fun getScale(): Float = scale
+    internal fun isInteractable(): Boolean = interactable
+    internal fun getDisplayName(): String? = displayName
+
     /**
      * Sets the model asset ID (e.g., "Minecart", "Kweebec", "Trork").
      */
@@ -290,3 +301,124 @@ fun World.spawnEntity(
     scale: Float = 1.0f,
     interactable: Boolean = false
 ): SpawnedEntity? = spawnEntity(modelAssetId, position.x, position.y, position.z, scale, interactable)
+
+/**
+ * Spawns an entity with cleanup of an orphaned entity.
+ * The cleanup happens synchronously on the world thread BEFORE the new entity is spawned.
+ * This prevents duplicate entities from accumulating.
+ *
+ * @param orphanedEntity Optional entity to clean up before spawning
+ * @param onCleanup Optional callback when cleanup occurs
+ * @param block Entity configuration DSL
+ * @return The spawned entity, or null if spawning failed
+ */
+fun World.spawnEntityWithCleanup(
+    orphanedEntity: SpawnedEntity?,
+    onCleanup: (() -> Unit)? = null,
+    block: EntityBuilder.() -> Unit
+): SpawnedEntity? {
+    val builder = EntityBuilder(this).apply(block)
+
+    val future = java.util.concurrent.CompletableFuture<SpawnedEntity?>()
+
+    this.execute {
+        if (orphanedEntity != null && orphanedEntity.isValid()) {
+            try {
+                val entityStore = this.entityStore
+                if (entityStore != null && orphanedEntity.entityRef.isValid) {
+                    entityStore.store.removeEntity(
+                        orphanedEntity.entityRef,
+                        EntityStore.REGISTRY.newHolder(),
+                        com.hypixel.hytale.component.RemoveReason.REMOVE
+                    )
+                    SpawnedEntityManager.unregister(orphanedEntity.id)
+                    onCleanup?.invoke()
+                }
+            } catch (e: Exception) {
+            }
+        }
+
+        try {
+            val entityStore = this.entityStore
+            if (entityStore == null) {
+                future.complete(null)
+                return@execute
+            }
+            val store = entityStore.store
+
+            val modelAssetId = builder.getModelAssetId()
+            if (modelAssetId.isEmpty()) {
+                future.complete(null)
+                return@execute
+            }
+
+            val modelAsset = ModelAsset.getAssetMap().getAsset(modelAssetId)
+            if (modelAsset == null) {
+                future.complete(null)
+                return@execute
+            }
+
+            val model = Model.createScaledModel(modelAsset, builder.getScale())
+            val holder = EntityStore.REGISTRY.newHolder()
+
+            holder.addComponent(
+                TransformComponent.getComponentType(),
+                TransformComponent(
+                    Vector3d(builder.getX(), builder.getY(), builder.getZ()),
+                    Vector3f(builder.getYaw(), builder.getPitch(), builder.getRoll())
+                )
+            )
+
+            val modelReference = Model.ModelReference(modelAssetId, builder.getScale(), null, false)
+            holder.addComponent(PersistentModel.getComponentType(), PersistentModel(modelReference))
+            holder.addComponent(ModelComponent.getComponentType(), ModelComponent(model))
+
+            val boundingBox = model.boundingBox
+            if (boundingBox != null) {
+                holder.addComponent(BoundingBox.getComponentType(), BoundingBox(boundingBox))
+            }
+
+            holder.addComponent(
+                NetworkId.getComponentType(),
+                NetworkId(store.externalData.takeNextNetworkId())
+            )
+
+            holder.ensureComponent(UUIDComponent.getComponentType())
+
+            val displayName = builder.getDisplayName()
+            if (displayName != null) {
+                holder.addComponent(
+                    DisplayNameComponent.getComponentType(),
+                    DisplayNameComponent(Message.raw(displayName))
+                )
+                holder.addComponent(Nameplate.getComponentType(), Nameplate(displayName))
+            }
+
+            if (builder.isInteractable()) {
+                holder.addComponent(Interactions.getComponentType(), Interactions())
+                holder.ensureComponent(Interactable.getComponentType())
+            }
+
+            holder.addComponent(HeadRotation.getComponentType(), HeadRotation())
+            holder.addComponent(MovementStatesComponent.getComponentType(), MovementStatesComponent())
+            holder.addComponent(ActiveAnimationComponent.getComponentType(), ActiveAnimationComponent())
+
+            val ref = store.addEntity(holder, AddReason.SPAWN)
+            if (ref != null) {
+                val entity = SpawnedEntity(java.util.UUID.randomUUID(), ref, this, modelAssetId)
+                SpawnedEntityManager.register(entity)
+                future.complete(entity)
+            } else {
+                future.complete(null)
+            }
+        } catch (e: Exception) {
+            future.complete(null)
+        }
+    }
+
+    return try {
+        future.get()
+    } catch (e: Exception) {
+        null
+    }
+}
