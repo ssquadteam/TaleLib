@@ -4,6 +4,7 @@ import com.github.ssquadteam.talelib.block.BlockChangeSyncSystem
 import com.github.ssquadteam.talelib.block.BlockEventDispatcher
 import com.github.ssquadteam.talelib.entity.EntityEventDispatcher
 import com.github.ssquadteam.talelib.entity.ItemEntityWatcher
+import com.github.ssquadteam.talelib.entity.ItemPositionWatcher
 import com.github.ssquadteam.talelib.entity.ItemQuantityWatcher
 import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.server.core.plugin.JavaPlugin
@@ -22,6 +23,7 @@ class TaleLibPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         // Entity systems
         ItemEntityWatcher.register()
         ItemQuantityWatcher.register()
+        ItemPositionWatcher.register()
 
         // Block change system
         BlockChangeSyncSystem.register()
@@ -32,6 +34,7 @@ class TaleLibPlugin(init: JavaPluginInit) : JavaPlugin(init) {
 
         EntityEventDispatcher.clear()
         ItemQuantityWatcher.clear()
+        ItemPositionWatcher.clear()
         BlockEventDispatcher.clear()
     }
 }

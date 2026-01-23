@@ -79,6 +79,7 @@ class ItemEntityWatcher : RefSystem<EntityStore>() {
             )
 
             ItemQuantityWatcher.trackQuantity(networkId, itemStack.quantity)
+            ItemPositionWatcher.trackPosition(networkId, position.x, position.y, position.z)
 
             EntityEventDispatcher.dispatchItemAdded(event)
 
@@ -118,6 +119,7 @@ class ItemEntityWatcher : RefSystem<EntityStore>() {
             )
 
             ItemQuantityWatcher.removeTracking(networkId)
+            ItemPositionWatcher.removeTracking(networkId)
 
             EntityEventDispatcher.dispatchItemRemoved(event)
 
