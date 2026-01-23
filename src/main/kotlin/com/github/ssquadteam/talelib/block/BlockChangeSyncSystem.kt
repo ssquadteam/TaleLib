@@ -13,13 +13,15 @@ import com.hypixel.hytale.logger.HytaleLogger
 import com.hypixel.hytale.math.util.ChunkUtil
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection
 import com.hypixel.hytale.server.core.universe.world.chunk.section.ChunkSection
+import com.hypixel.hytale.server.core.universe.world.chunk.systems.ChunkSystems
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
+import java.lang.reflect.Field
 import javax.annotation.Nonnull
 
 /**
  * ECS system that detects ALL block changes after physics and dispatches events.
- * Runs AFTER BlockPhysicsSystems.Ticking to capture physics-caused block changes.
+ * Runs AFTER BlockPhysicsSystems.Ticking but BEFORE ChunkSystems.ReplicateChanges.
  */
 class BlockChangeSyncSystem : EntityTickingSystem<ChunkStore>() {
 
@@ -33,8 +35,12 @@ class BlockChangeSyncSystem : EntityTickingSystem<ChunkStore>() {
         )
 
         private val DEPENDENCIES: Set<Dependency<ChunkStore>> = setOf(
-            SystemDependency(Order.AFTER, BlockPhysicsSystems.Ticking::class.java)
+            SystemDependency(Order.AFTER, BlockPhysicsSystems.Ticking::class.java),
+            SystemDependency(Order.BEFORE, ChunkSystems.ReplicateChanges::class.java)
         )
+
+        private var changedPositionsField: Field? = null
+        private var chunkSectionLockField: Field? = null
 
         @Volatile
         private var registered = false
@@ -44,10 +50,17 @@ class BlockChangeSyncSystem : EntityTickingSystem<ChunkStore>() {
             if (registered) return
 
             try {
+                changedPositionsField = BlockSection::class.java.getDeclaredField("changedPositions").apply {
+                    isAccessible = true
+                }
+                chunkSectionLockField = BlockSection::class.java.getDeclaredField("chunkSectionLock").apply {
+                    isAccessible = true
+                }
+
                 val system = BlockChangeSyncSystem()
                 ChunkStore.REGISTRY.registerSystem(system)
                 registered = true
-                LOGGER.atInfo().log("TaleLib: BlockChangeSyncSystem registered")
+                LOGGER.atInfo().log("TaleLib: BlockChangeSyncSystem registered (non-destructive read mode)")
             } catch (e: Exception) {
                 LOGGER.atWarning().withCause(e).log("TaleLib: Failed to register BlockChangeSyncSystem")
             }
@@ -55,6 +68,37 @@ class BlockChangeSyncSystem : EntityTickingSystem<ChunkStore>() {
 
         @JvmStatic
         fun isRegistered(): Boolean = registered
+
+        @Suppress("UNCHECKED_CAST")
+        private fun readChangedPositions(blockSection: BlockSection): IntOpenHashSet? {
+            val field = changedPositionsField ?: return null
+            val lockField = chunkSectionLockField ?: return null
+
+            return try {
+                val lock = lockField.get(blockSection) as java.util.concurrent.locks.StampedLock
+                val stamp = lock.tryOptimisticRead()
+                val positions = field.get(blockSection) as? IntOpenHashSet
+
+                if (positions == null || positions.isEmpty()) {
+                    return null
+                }
+
+                val copy = if (lock.validate(stamp)) {
+                    IntOpenHashSet(positions)
+                } else {
+                    val readStamp = lock.readLock()
+                    try {
+                        IntOpenHashSet(field.get(blockSection) as IntOpenHashSet)
+                    } finally {
+                        lock.unlockRead(readStamp)
+                    }
+                }
+
+                if (copy.isEmpty()) null else copy
+            } catch (e: Exception) {
+                null
+            }
+        }
     }
 
     @Nonnull
@@ -77,9 +121,7 @@ class BlockChangeSyncSystem : EntityTickingSystem<ChunkStore>() {
             val blockSection = archetypeChunk.getComponent(index, BlockSection.getComponentType()) ?: return
             val chunkSection = archetypeChunk.getComponent(index, ChunkSection.getComponentType()) ?: return
 
-            // Get all changed positions since last tick (atomically clears the set)
-            val changedPositions: IntOpenHashSet = blockSection.getAndClearChangedPositions()
-            if (changedPositions.isEmpty()) return
+            val changedPositions = readChangedPositions(blockSection) ?: return
 
             val chunkStore = store.externalData as? ChunkStore ?: return
             val world = chunkStore.world
