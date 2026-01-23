@@ -14,6 +14,7 @@ object EntityEventDispatcher {
     private val itemAddedHandlers = CopyOnWriteArrayList<ItemEntityAddedHandler>()
     private val itemRemovedHandlers = CopyOnWriteArrayList<ItemEntityRemovedHandler>()
     private val itemMovedHandlers = CopyOnWriteArrayList<ItemEntityMovedHandler>()
+    private val itemQuantityChangedHandlers = CopyOnWriteArrayList<ItemQuantityChangedHandler>()
     private val itemListeners = CopyOnWriteArrayList<ItemEntityListener>()
 
     private val handlersByOwner = ConcurrentHashMap<Any, MutableList<Any>>()
@@ -33,6 +34,11 @@ object EntityEventDispatcher {
         handlersByOwner.getOrPut(owner) { mutableListOf() }.add(handler)
     }
 
+    fun onItemQuantityChanged(owner: Any, handler: ItemQuantityChangedHandler) {
+        itemQuantityChangedHandlers.add(handler)
+        handlersByOwner.getOrPut(owner) { mutableListOf() }.add(handler)
+    }
+
     fun addItemListener(owner: Any, listener: ItemEntityListener) {
         itemListeners.add(listener)
         handlersByOwner.getOrPut(owner) { mutableListOf() }.add(listener)
@@ -45,6 +51,7 @@ object EntityEventDispatcher {
                 is ItemEntityAddedHandler -> itemAddedHandlers.remove(handler)
                 is ItemEntityRemovedHandler -> itemRemovedHandlers.remove(handler)
                 is ItemEntityMovedHandler -> itemMovedHandlers.remove(handler)
+                is ItemQuantityChangedHandler -> itemQuantityChangedHandlers.remove(handler)
                 is ItemEntityListener -> itemListeners.remove(handler)
             }
         }
@@ -101,16 +108,35 @@ object EntityEventDispatcher {
         }
     }
 
+    internal fun dispatchItemQuantityChanged(event: ItemQuantityChangedEvent) {
+        for (handler in itemQuantityChangedHandlers) {
+            try {
+                handler.handle(event)
+            } catch (e: Exception) {
+                LOGGER.atWarning().withCause(e).log("Error in ItemQuantityChangedHandler")
+            }
+        }
+        for (listener in itemListeners) {
+            try {
+                listener.onItemQuantityChanged(event)
+            } catch (e: Exception) {
+                LOGGER.atWarning().withCause(e).log("Error in ItemEntityListener.onItemQuantityChanged")
+            }
+        }
+    }
+
     fun hasItemHandlers(): Boolean =
         itemAddedHandlers.isNotEmpty() ||
         itemRemovedHandlers.isNotEmpty() ||
         itemMovedHandlers.isNotEmpty() ||
+        itemQuantityChangedHandlers.isNotEmpty() ||
         itemListeners.isNotEmpty()
 
     fun clear() {
         itemAddedHandlers.clear()
         itemRemovedHandlers.clear()
         itemMovedHandlers.clear()
+        itemQuantityChangedHandlers.clear()
         itemListeners.clear()
         handlersByOwner.clear()
     }

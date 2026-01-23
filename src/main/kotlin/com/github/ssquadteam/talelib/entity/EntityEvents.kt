@@ -35,10 +35,20 @@ data class ItemEntityMovedEvent(
     val newPosition: Vector3d
 )
 
+data class ItemQuantityChangedEvent(
+    val entityRef: Ref<EntityStore>,
+    val world: World,
+    val networkId: Int,
+    val itemStack: ItemStack,
+    val oldQuantity: Int,
+    val newQuantity: Int
+)
+
 interface ItemEntityListener {
     fun onItemEntityAdded(event: ItemEntityAddedEvent) {}
     fun onItemEntityRemoved(event: ItemEntityRemovedEvent) {}
     fun onItemEntityMoved(event: ItemEntityMovedEvent) {}
+    fun onItemQuantityChanged(event: ItemQuantityChangedEvent) {}
 }
 
 fun interface ItemEntityAddedHandler {
@@ -51,4 +61,8 @@ fun interface ItemEntityRemovedHandler {
 
 fun interface ItemEntityMovedHandler {
     fun handle(event: ItemEntityMovedEvent)
+}
+
+fun interface ItemQuantityChangedHandler {
+    fun handle(event: ItemQuantityChangedEvent)
 }

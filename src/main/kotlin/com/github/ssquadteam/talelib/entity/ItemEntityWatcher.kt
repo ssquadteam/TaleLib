@@ -78,6 +78,8 @@ class ItemEntityWatcher : RefSystem<EntityStore>() {
                 reason = reason
             )
 
+            ItemQuantityWatcher.trackQuantity(networkId, itemStack.quantity)
+
             EntityEventDispatcher.dispatchItemAdded(event)
 
         } catch (e: Exception) {
@@ -114,6 +116,8 @@ class ItemEntityWatcher : RefSystem<EntityStore>() {
                 position = position,
                 reason = reason
             )
+
+            ItemQuantityWatcher.removeTracking(networkId)
 
             EntityEventDispatcher.dispatchItemRemoved(event)
 
