@@ -1,5 +1,7 @@
 package com.github.ssquadteam.talelib
 
+import com.github.ssquadteam.talelib.block.BlockChangeSyncSystem
+import com.github.ssquadteam.talelib.block.BlockEventDispatcher
 import com.github.ssquadteam.talelib.entity.EntityEventDispatcher
 import com.github.ssquadteam.talelib.entity.ItemEntityWatcher
 import com.github.ssquadteam.talelib.entity.ItemQuantityWatcher
@@ -17,8 +19,12 @@ class TaleLibPlugin(init: JavaPluginInit) : JavaPlugin(init) {
         LOGGER.atInfo().log("TaleLib v${TaleLib.VERSION} loaded!")
         LOGGER.atInfo().log("A flexible, expandable Kotlin library for Hytale plugin development")
 
+        // Entity systems
         ItemEntityWatcher.register()
         ItemQuantityWatcher.register()
+
+        // Block change system
+        BlockChangeSyncSystem.register()
     }
 
     override fun shutdown() {
@@ -26,5 +32,6 @@ class TaleLibPlugin(init: JavaPluginInit) : JavaPlugin(init) {
 
         EntityEventDispatcher.clear()
         ItemQuantityWatcher.clear()
+        BlockEventDispatcher.clear()
     }
 }
