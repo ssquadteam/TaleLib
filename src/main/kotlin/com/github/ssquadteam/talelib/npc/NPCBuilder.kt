@@ -4,13 +4,14 @@ import com.hypixel.hytale.component.Holder
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
 import com.hypixel.hytale.function.consumer.TriConsumer
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 import com.hypixel.hytale.server.npc.NPCPlugin
 import com.hypixel.hytale.server.npc.entities.NPCEntity
+import com.hypixel.hytale.server.npc.role.support.StateSupport
 import it.unimi.dsi.fastutil.Pair
 
 // ============================================
@@ -21,7 +22,7 @@ class NPCBuilder {
     private var roleId: String? = null
     private var roleIndex: Int? = null
     private var position: Vector3d? = null
-    private var rotation: Vector3f? = null
+    private var rotation: Rotation3f? = null
     private var model: Model? = null
     private var preAddCallback: TriConsumer<NPCEntity, Holder<EntityStore>, Store<EntityStore>>? = null
     private var postSpawnCallback: TriConsumer<NPCEntity, Ref<EntityStore>, Store<EntityStore>>? = null
@@ -51,17 +52,17 @@ class NPCBuilder {
     }
 
     fun rotation(yaw: Float, pitch: Float, roll: Float = 0f): NPCBuilder {
-        this.rotation = Vector3f(pitch, yaw, roll)
+        this.rotation = Rotation3f(pitch, yaw, roll)
         return this
     }
 
-    fun rotation(rot: Vector3f): NPCBuilder {
-        this.rotation = Vector3f(rot)
+    fun rotation(rot: Rotation3f): NPCBuilder {
+        this.rotation = Rotation3f(rot)
         return this
     }
 
     fun facing(yaw: Float): NPCBuilder {
-        this.rotation = Vector3f(0f, yaw, 0f)
+        this.rotation = Rotation3f(0f, yaw, 0f)
         return this
     }
 
@@ -100,7 +101,7 @@ class NPCBuilder {
     fun spawn(store: Store<EntityStore>): Pair<Ref<EntityStore>, NPCEntity>? {
         val resolvedIndex = resolveRoleIndex() ?: return null
         val pos = position ?: return null
-        val rot = rotation ?: Vector3f(0f, 0f, 0f)
+        val rot = rotation ?: Rotation3f(0f, 0f, 0f)
 
         val state = initialState
         val subState = initialSubState
@@ -109,7 +110,7 @@ class NPCBuilder {
             if (state != null || callback != null) {
                 TriConsumer { npc, ref, s ->
                     if (state != null) {
-                        npc.role?.stateSupport?.setState(ref, state, subState, s)
+                        StateSupport.get(ref, s)?.setState(ref, state, subState, s)
                     }
                     callback?.accept(npc, ref, s)
                 }

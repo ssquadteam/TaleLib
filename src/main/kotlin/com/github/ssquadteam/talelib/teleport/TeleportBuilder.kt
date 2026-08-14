@@ -1,8 +1,8 @@
 package com.github.ssquadteam.talelib.teleport
 
 import com.github.ssquadteam.talelib.world.Location
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -16,7 +16,6 @@ class TeleportBuilder(private val playerRef: PlayerRef) {
     private var pitch: Float = 0f
     private var targetWorld: World? = null
     private var resetVelocity: Boolean = true
-    private var resetRoll: Boolean = false
 
     fun to(x: Double, y: Double, z: Double): TeleportBuilder {
         this.x = x
@@ -38,7 +37,7 @@ class TeleportBuilder(private val playerRef: PlayerRef) {
         val store = targetRef.store
         val transform = store.getComponent(targetRef, TransformComponent.getComponentType()) ?: return this
         to(transform.position)
-        facing(transform.rotation.yaw, transform.rotation.pitch)
+        facing(transform.rotation.yaw(), transform.rotation.pitch())
         return this
     }
 
@@ -58,26 +57,18 @@ class TeleportBuilder(private val playerRef: PlayerRef) {
         return this
     }
 
-    fun resetRoll(): TeleportBuilder {
-        resetRoll = true
-        return this
-    }
-
     fun execute() {
         val ref = playerRef.reference ?: return
         val store = ref.store
 
         var teleport = if (targetWorld != null) {
-            Teleport(targetWorld, Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
+            Teleport(targetWorld, Vector3d(x, y, z), Rotation3f(pitch, yaw, 0f))
         } else {
-            Teleport(Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
+            Teleport(Vector3d(x, y, z), Rotation3f(pitch, yaw, 0f))
         }
 
         if (!resetVelocity) {
             teleport = teleport.withoutVelocityReset()
-        }
-        if (resetRoll) {
-            teleport = teleport.withResetRoll()
         }
 
         store.putComponent(ref, Teleport.getComponentType(), teleport)

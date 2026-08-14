@@ -31,7 +31,7 @@ abstract class TaleHud(
         val p = player.getPlayerComponent() ?: return
         val customHud = TaleCustomUIHud(player, this)
         customHuds[player] = customHud
-        p.hudManager.setCustomHud(player, customHud)
+        p.hudManager.addCustomHud(player, customHud)
         activeForPlayers.add(player)
         onShow(player)
     }
@@ -39,7 +39,7 @@ abstract class TaleHud(
     fun hide(player: PlayerRef) {
         val p = player.getPlayerComponent() ?: return
         customHuds.remove(player)
-        p.hudManager.setCustomHud(player, null)
+        p.hudManager.removeCustomHud(player, id)
         activeForPlayers.remove(player)
         onHide(player)
     }
@@ -109,7 +109,7 @@ abstract class TaleHud(
 internal class TaleCustomUIHud(
     playerRef: PlayerRef,
     private val taleHud: TaleHud
-) : CustomUIHud(playerRef) {
+) : CustomUIHud(playerRef, taleHud.id) {
     override fun build(builder: UICommandBuilder) {
         taleHud.onBuild(playerRef, builder)
     }

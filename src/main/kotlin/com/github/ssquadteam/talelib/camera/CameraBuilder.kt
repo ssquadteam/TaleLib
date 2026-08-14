@@ -6,7 +6,7 @@ import com.hypixel.hytale.protocol.MovementForceRotationType
 import com.hypixel.hytale.protocol.PositionDistanceOffsetType
 import com.hypixel.hytale.protocol.RotationType
 import com.hypixel.hytale.protocol.ServerCameraSettings
-import com.hypixel.hytale.protocol.Vector3f
+import org.joml.Vector3f
 
 class CameraBuilder {
     private val settings = ServerCameraSettings()

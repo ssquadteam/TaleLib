@@ -2,7 +2,7 @@
 
 package com.github.ssquadteam.talelib.sound
 
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector3d
 import com.hypixel.hytale.protocol.SoundCategory
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent

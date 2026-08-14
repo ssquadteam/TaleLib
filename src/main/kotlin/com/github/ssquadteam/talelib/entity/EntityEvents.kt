@@ -3,7 +3,7 @@ package com.github.ssquadteam.talelib.entity
 import com.hypixel.hytale.component.AddReason
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector3d
 import com.hypixel.hytale.server.core.inventory.ItemStack
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore

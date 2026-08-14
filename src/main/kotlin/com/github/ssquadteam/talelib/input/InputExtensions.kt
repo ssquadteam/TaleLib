@@ -2,7 +2,7 @@
 
 package com.github.ssquadteam.talelib.input
 
-import com.hypixel.hytale.math.vector.Vector3i
+import org.joml.Vector3i
 import com.hypixel.hytale.protocol.MouseButtonState
 import com.hypixel.hytale.protocol.MouseButtonType
 import com.hypixel.hytale.server.core.entity.Entity
@@ -40,7 +40,7 @@ val PlayerMouseButtonEvent.hasTargetBlock: Boolean
     get() = this.targetBlock != null
 
 val PlayerMouseButtonEvent.hasTargetEntity: Boolean
-    get() = this.targetEntity != null
+    get() = this.targetEntityRef != null
 
 val PlayerMouseButtonEvent.hasItemInHand: Boolean
     get() = this.itemInHand != null
@@ -54,7 +54,7 @@ fun PlayerMouseButtonEvent.isLeftRelease(): Boolean = isLeftClick && isReleased
 fun PlayerMouseButtonEvent.isRightRelease(): Boolean = isRightClick && isReleased
 
 val PlayerMouseButtonEvent.normalizedScreenPoint: Pair<Float, Float>?
-    get() = this.screenPoint?.let { Pair(it.x, it.y) }
+    get() = this.screenPoint?.let { Pair(it.x(), it.y()) }
 
 val PlayerMouseMotionEvent.deltaX: Int
     get() = this.mouseMotion?.relativeMotion?.x ?: 0
@@ -87,7 +87,7 @@ val PlayerMouseMotionEvent.hasTargetBlock: Boolean
     get() = this.targetBlock != null
 
 val PlayerMouseMotionEvent.hasTargetEntity: Boolean
-    get() = this.targetEntity != null
+    get() = this.targetEntityRef != null
 
 // ============================================
 // Hold Detection (PlayerMouseButtonEvent)

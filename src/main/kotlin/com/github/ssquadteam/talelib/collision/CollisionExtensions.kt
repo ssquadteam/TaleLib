@@ -2,8 +2,8 @@ package com.github.ssquadteam.talelib.collision
 
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.shape.Box
-import com.hypixel.hytale.math.vector.Vector2d
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector2d
+import org.joml.Vector3d
 import com.hypixel.hytale.protocol.CollisionType
 import com.hypixel.hytale.server.core.modules.collision.*
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -35,7 +35,7 @@ fun World.raycast(
     materials: Int = CollisionMaterials.SOLID
 ): RaycastResult? {
     val pointBox = Box(0.0, 0.0, 0.0, 0.01, 0.01, 0.01)
-    val ray = Vector3d(direction).normalize().scale(maxDistance)
+    val ray = Vector3d(direction).normalize().mul(maxDistance)
 
     val result = CollisionResult(false, false)
     result.setCollisionByMaterial(materials)
@@ -271,12 +271,13 @@ object CollisionUtils {
 fun World.findEntityCollisions(
     position: Vector3d,
     movement: Vector3d,
-    ignoreSelf: Ref<EntityStore>? = null
+    ignoreSelf: Ref<EntityStore>? = null,
+    collider: Box = playerBox()
 ): List<EntityCollisionInfo> {
     val result = CollisionResult(false, true)
 
     return try {
-        CollisionModule.findCharacterCollisions(position, movement, result, this.entityStore.store)
+        CollisionModule.findCharacterCollisions(collider, position, movement, result, this.entityStore.store)
 
         val collisions = mutableListOf<EntityCollisionInfo>()
         var collision = result.firstCharacterCollision

@@ -1,7 +1,7 @@
 package com.github.ssquadteam.talelib.prefab
 
 import com.hypixel.hytale.component.Ref
-import com.hypixel.hytale.math.vector.Vector3i
+import org.joml.Vector3i
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.Rotation
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.prefab.PrefabRotation

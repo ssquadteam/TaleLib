@@ -4,8 +4,8 @@ package com.github.ssquadteam.talelib.entity
 
 import com.hypixel.hytale.component.AddReason
 import com.hypixel.hytale.component.Ref
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset
 import com.hypixel.hytale.server.core.entity.UUIDComponent
@@ -105,7 +105,7 @@ class EntityBuilder(private val world: World) {
     /**
      * Sets the rotation.
      */
-    fun rotation(rot: Vector3f): EntityBuilder = rotation(rot.x, rot.y, rot.z)
+    fun rotation(rot: Rotation3f): EntityBuilder = rotation(rot.x, rot.y, rot.z)
 
     /**
      * Sets the model scale (default 1.0).
@@ -164,7 +164,7 @@ class EntityBuilder(private val world: World) {
             // Add TransformComponent for position and rotation
             holder.addComponent(
                 TransformComponent.getComponentType(),
-                TransformComponent(Vector3d(x, y, z), Vector3f(yaw, pitch, roll))
+                TransformComponent(Vector3d(x, y, z), Rotation3f(yaw, pitch, roll))
             )
 
             // Add PersistentModel for model reference
@@ -365,7 +365,7 @@ fun World.spawnEntityWithCleanup(
                 TransformComponent.getComponentType(),
                 TransformComponent(
                     Vector3d(builder.getX(), builder.getY(), builder.getZ()),
-                    Vector3f(builder.getYaw(), builder.getPitch(), builder.getRoll())
+                    Rotation3f(builder.getYaw(), builder.getPitch(), builder.getRoll())
                 )
             )
 

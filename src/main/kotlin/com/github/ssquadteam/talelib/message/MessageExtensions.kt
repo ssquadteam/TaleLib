@@ -3,7 +3,6 @@
 package com.github.ssquadteam.talelib.message
 
 import com.hypixel.hytale.server.core.Message
-import com.hypixel.hytale.protocol.MaybeBool
 import com.github.ssquadteam.hytaleminiformat.Colors
 
 fun String.toMessage(): Message = Message.raw(this)
@@ -43,6 +42,6 @@ fun separator(char: Char = '-', length: Int = 40, color: String = Colors.GRAY): 
     char.toString().repeat(length).toMessage().color(color)
 
 fun Message.underlined(underlined: Boolean): Message {
-    this.formattedMessage.underlined = if (underlined) MaybeBool.True else MaybeBool.False
+    this.formattedMessage.underlined = underlined
     return this
 }

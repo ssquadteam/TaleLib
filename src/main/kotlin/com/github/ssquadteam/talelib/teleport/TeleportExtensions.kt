@@ -3,8 +3,8 @@
 package com.github.ssquadteam.talelib.teleport
 
 import com.github.ssquadteam.talelib.world.Location
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -14,17 +14,17 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 fun PlayerRef.teleport(x: Double, y: Double, z: Double, yaw: Float = 0f, pitch: Float = 0f) {
     val ref = this.reference ?: return
     val store = ref.store
-    val teleport = Teleport(Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
+    val teleport = Teleport(Vector3d(x, y, z), Rotation3f(pitch, yaw, 0f))
     store.putComponent(ref, Teleport.getComponentType(), teleport)
 }
 
-fun PlayerRef.teleport(position: Vector3d, rotation: Vector3f? = null) {
+fun PlayerRef.teleport(position: Vector3d, rotation: Rotation3f? = null) {
     teleport(
         position.x,
         position.y,
         position.z,
-        rotation?.yaw ?: 0f,
-        rotation?.pitch ?: 0f
+        rotation?.yaw() ?: 0f,
+        rotation?.pitch() ?: 0f
     )
 }
 
@@ -48,7 +48,7 @@ fun PlayerRef.teleportTo(other: PlayerRef) {
 fun PlayerRef.teleportToWorld(targetWorld: World, x: Double, y: Double, z: Double, yaw: Float = 0f, pitch: Float = 0f) {
     val ref = this.reference ?: return
     val store = ref.store
-    val teleport = Teleport(targetWorld, Vector3d(x, y, z), Vector3f(yaw, pitch, 0f))
+    val teleport = Teleport(targetWorld, Vector3d(x, y, z), Rotation3f(pitch, yaw, 0f))
     store.putComponent(ref, Teleport.getComponentType(), teleport)
 }
 

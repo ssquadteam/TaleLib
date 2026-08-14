@@ -1,6 +1,6 @@
 package com.github.ssquadteam.talelib.world
 
-import com.hypixel.hytale.protocol.Vector3f
+import org.joml.Vector3f
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

@@ -2,8 +2,8 @@ package com.github.ssquadteam.talelib.spawn
 
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.math.vector.Transform
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
@@ -47,15 +47,15 @@ fun World.getSpawnPosition(playerUuid: UUID): Vector3d? {
     return getSpawnPoint(playerUuid)?.position
 }
 
-fun World.getSpawnRotation(playerUuid: UUID): Vector3f? {
+fun World.getSpawnRotation(playerUuid: UUID): Rotation3f? {
     return getSpawnPoint(playerUuid)?.rotation
 }
 
 fun World.setGlobalSpawn(x: Double, y: Double, z: Double, yaw: Float = 0f, pitch: Float = 0f): Boolean {
-    return setGlobalSpawn(Vector3d(x, y, z), Vector3f(pitch, yaw, 0f))
+    return setGlobalSpawn(Vector3d(x, y, z), Rotation3f(pitch, yaw, 0f))
 }
 
-fun World.setGlobalSpawn(position: Vector3d, rotation: Vector3f = Vector3f(0f, 0f, 0f)): Boolean {
+fun World.setGlobalSpawn(position: Vector3d, rotation: Rotation3f = Rotation3f(0f, 0f, 0f)): Boolean {
     return try {
         val transform = Transform(position, rotation)
         val provider = GlobalSpawnProvider(transform)
@@ -118,8 +118,8 @@ fun PlayerRef.teleportToSpawn(): Boolean {
         val store = ref.store
         val transform = store.getComponent(ref, TransformComponent.getComponentType())
         if (transform != null) {
-            transform.position.assign(spawnPoint.position)
-            transform.rotation.assign(spawnPoint.rotation)
+            transform.position.set(spawnPoint.position)
+            transform.rotation.set(spawnPoint.rotation)
             true
         } else false
     } catch (e: Exception) {
@@ -173,7 +173,7 @@ class SpawnPointBuilder {
     fun build(): Transform {
         return Transform(
             Vector3d(x, y, z),
-            Vector3f(pitch, yaw, roll)
+            Rotation3f(pitch, yaw, roll)
         )
     }
 }
@@ -206,7 +206,7 @@ class SpawnConfigBuilder {
     private var isGlobal = true
 
     fun addSpawnPoint(x: Double, y: Double, z: Double, yaw: Float = 0f): SpawnConfigBuilder {
-        spawnPoints.add(Transform(Vector3d(x, y, z), Vector3f(0f, yaw, 0f)))
+        spawnPoints.add(Transform(Vector3d(x, y, z), Rotation3f(0f, yaw, 0f)))
         isGlobal = spawnPoints.size == 1
         return this
     }
@@ -262,7 +262,7 @@ fun configureSpawn(block: SpawnConfigBuilder.() -> Unit): SpawnConfigBuilder {
 
 data class SpawnInfo(
     val position: Vector3d,
-    val rotation: Vector3f,
+    val rotation: Rotation3f,
     val isGlobal: Boolean,
     val spawnCount: Int
 ) {
@@ -303,10 +303,10 @@ fun PlayerRef.getSpawnInfo(): SpawnInfo? {
 // ============================================
 
 fun createTransform(x: Double, y: Double, z: Double, yaw: Float = 0f, pitch: Float = 0f): Transform {
-    return Transform(Vector3d(x, y, z), Vector3f(pitch, yaw, 0f))
+    return Transform(Vector3d(x, y, z), Rotation3f(pitch, yaw, 0f))
 }
 
 fun distanceToSpawn(world: World, playerUuid: UUID, position: Vector3d): Double? {
     val spawnPos = world.getSpawnPosition(playerUuid) ?: return null
-    return spawnPos.distanceTo(position)
+    return spawnPos.distance(position)
 }

@@ -1,7 +1,7 @@
 package com.github.ssquadteam.talelib.time
 
 import com.hypixel.hytale.component.Store
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
@@ -97,7 +97,7 @@ fun World.getMoonPhase(): Int? {
     return getTimeResource()?.moonPhase
 }
 
-fun World.getSunDirection(): Vector3f? {
+fun World.getSunDirection(): Vector3d? {
     return getTimeResource()?.sunDirection
 }
 

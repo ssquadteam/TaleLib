@@ -2,7 +2,7 @@
 
 package com.github.ssquadteam.talelib.hologram
 
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector3d
 import com.hypixel.hytale.server.core.universe.world.World
 
 /**

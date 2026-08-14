@@ -28,8 +28,8 @@ val IBaseEvent<*>.cancelled: Boolean
 val PlayerReadyEvent.playerEntity: Player
     get() = this.player
 
-fun PlayerReadyEvent.welcome(message: Message) = this.player.sendMessage(message)
-fun PlayerReadyEvent.welcome(text: String) = this.player.sendMessage(Message.raw(text))
+fun PlayerReadyEvent.welcome(message: Message) = this.player.playerRef.sendMessage(message)
+fun PlayerReadyEvent.welcome(text: String) = this.player.playerRef.sendMessage(Message.raw(text))
 
 var PlayerChatEvent.message: String
     get() = this.content

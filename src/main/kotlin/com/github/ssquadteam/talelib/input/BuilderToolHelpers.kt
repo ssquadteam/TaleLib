@@ -30,10 +30,10 @@ enum class BuilderToolAction {
 }
 
 fun Player.hasBuilderToolsPermission(): Boolean =
-    this.hasPermission(BuilderToolPermissions.BASE)
+    this.playerRef.hasPermission(BuilderToolPermissions.BASE)
 
 fun Player.hasBuilderToolsPermission(permission: String): Boolean =
-    this.hasPermission(permission) || this.hasPermission(BuilderToolPermissions.BASE)
+    this.playerRef.hasPermission(permission) || this.playerRef.hasPermission(BuilderToolPermissions.BASE)
 
 val Player.isInCreativeMode: Boolean
     get() = this.gameMode == GameMode.Creative

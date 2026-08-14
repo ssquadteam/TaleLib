@@ -5,7 +5,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.Universe
 
 val HytaleServer.onlinePlayers: List<PlayerRef>
-    get() = Universe.get().getPlayers()
+    get() = Universe.get().getPlayers().toList()
 
 fun HytaleServer.findPlayer(name: String): PlayerRef? {
     return onlinePlayers.find { it.username.equals(name, ignoreCase = true) }

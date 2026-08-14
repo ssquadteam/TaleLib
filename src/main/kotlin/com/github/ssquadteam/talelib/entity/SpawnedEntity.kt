@@ -4,12 +4,10 @@ import com.github.ssquadteam.talelib.damage.damage
 import com.github.ssquadteam.talelib.damage.getDamageCause
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.protocol.AnimationSlot
-import com.hypixel.hytale.protocol.ComponentUpdate
-import com.hypixel.hytale.protocol.ComponentUpdateType
-import com.hypixel.hytale.protocol.Equipment
+import com.hypixel.hytale.protocol.EquipmentUpdate
 import com.hypixel.hytale.protocol.packets.entities.PlayAnimation
 import com.hypixel.hytale.server.core.asset.type.model.config.Model
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent
@@ -51,7 +49,7 @@ class SpawnedEntity internal constructor(
     /**
      * Gets the entity's current rotation.
      */
-    val rotation: Vector3f?
+    val rotation: Rotation3f?
         get() {
             val entityStore = world.entityStore ?: return null
             return entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.rotation
@@ -65,7 +63,7 @@ class SpawnedEntity internal constructor(
         world.execute {
             if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
-            entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.position?.assign(x, y, z)
+            entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.position?.set(x, y, z)
         }
     }
 
@@ -84,14 +82,14 @@ class SpawnedEntity internal constructor(
         world.execute {
             if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
-            entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.rotation?.assign(yaw, pitch, roll)
+            entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.rotation?.set(yaw, pitch, roll)
         }
     }
 
     /**
      * Sets the entity's rotation.
      */
-    fun setRotation(rotation: Vector3f) {
+    fun setRotation(rotation: Rotation3f) {
         setRotation(rotation.x, rotation.y, rotation.z)
     }
 
@@ -104,14 +102,14 @@ class SpawnedEntity internal constructor(
         world.execute {
             if (!entityRef.isValid) return@execute
             val entityStore = world.entityStore ?: return@execute
-            entityStore.store.getComponent(entityRef, HeadRotation.getComponentType())?.rotation?.assign(pitch, yaw, roll)
+            entityStore.store.getComponent(entityRef, HeadRotation.getComponentType())?.rotation?.set(pitch, yaw, roll)
         }
     }
 
     /**
      * Sets the entity's head rotation.
      */
-    fun setHeadRotation(rotation: Vector3f) {
+    fun setHeadRotation(rotation: Rotation3f) {
         setHeadRotation(rotation.x, rotation.y, rotation.z)
     }
 
@@ -333,14 +331,10 @@ class SpawnedEntity internal constructor(
             val visibleComponent = store.getComponent(entityRef, EntityTrackerSystems.Visible.getComponentType())
                 ?: return@execute
 
-            val equipment = Equipment()
-            equipment.rightHandItemId = rightHandItemId
-            equipment.leftHandItemId = leftHandItemId
-            equipment.armorIds = arrayOf("", "", "", "")
-
-            val update = ComponentUpdate()
-            update.type = ComponentUpdateType.Equipment
-            update.equipment = equipment
+            val update = EquipmentUpdate()
+            update.rightHandItemId = rightHandItemId
+            update.leftHandItemId = leftHandItemId
+            update.armorIds = arrayOf("", "", "", "")
 
             for (viewer in visibleComponent.visibleTo.values) {
                 try {

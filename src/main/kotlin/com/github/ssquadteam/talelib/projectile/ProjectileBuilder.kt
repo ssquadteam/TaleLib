@@ -3,8 +3,8 @@ package com.github.ssquadteam.talelib.projectile
 import com.hypixel.hytale.component.CommandBuffer
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.Store
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule
 import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig
 import com.hypixel.hytale.server.core.universe.PlayerRef
@@ -114,12 +114,13 @@ class ProjectileBuilder {
         val dir = direction ?: return null
         val creator = creatorRef ?: return null
 
-        val scaledDirection = Vector3d(dir).scale(velocityMultiplier)
+        val scaledDirection = Vector3d(dir).mul(velocityMultiplier)
 
         return try {
             if (predictionId != null) {
                 ProjectileModule.get().spawnProjectile(
                     predictionId,
+                    null,
                     creator,
                     commandBuffer,
                     projectileConfig,

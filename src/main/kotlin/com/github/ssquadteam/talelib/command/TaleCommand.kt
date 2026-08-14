@@ -69,15 +69,15 @@ abstract class TaleCommand(
 
 class TaleContext(val raw: CommandContext) {
     val sender: CommandSender get() = raw.sender()
-    val senderName: String get() = sender.displayName
+    val senderName: String get() = (sender as? PlayerRef)?.username ?: CONSOLE_SENDER_NAME
 
     val isPlayer: Boolean get() = raw.isPlayer
 
-    val player: Player?
-        get() = if (isPlayer) raw.senderAs(Player::class.java) else null
-
     val playerRef: PlayerRef?
-        get() = player?.playerRef
+        get() = if (isPlayer) raw.senderAs(PlayerRef::class.java) else null
+
+    val player: Player?
+        get() = playerRef?.getComponent(Player.getComponentType())
 
     fun <T> get(arg: RequiredArg<T>): T = arg.get(raw)
     fun <T> get(arg: OptionalArg<T>): T? = arg.get(raw)
@@ -89,5 +89,9 @@ class TaleContext(val raw: CommandContext) {
     fun requirePlayer(error: String = "This command requires a player."): Player? {
         if (!isPlayer) reply(error)
         return player
+    }
+
+    private companion object {
+        const val CONSOLE_SENDER_NAME = "Console"
     }
 }

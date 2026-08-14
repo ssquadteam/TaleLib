@@ -3,11 +3,12 @@
 package com.github.ssquadteam.talelib.worldmap
 
 import com.hypixel.hytale.protocol.packets.worldmap.MapMarker
-import com.hypixel.hytale.server.core.asset.type.gameplay.GameplayConfig
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.universe.world.World
 import com.hypixel.hytale.server.core.universe.world.WorldMapTracker
 import com.hypixel.hytale.server.core.universe.world.worldmap.WorldMapManager
+import com.hypixel.hytale.server.core.universe.world.worldmap.markers.MarkersCollector
+import com.hypixel.hytale.server.core.universe.world.worldmap.markers.user.UserMapMarker
 import it.unimi.dsi.fastutil.longs.LongSet
 
 // ============================================================================
@@ -80,22 +81,8 @@ fun World.getMapMarkers(): Map<String, MapMarker> {
  * @param provider The marker provider implementation
  */
 fun World.registerMarkerProvider(key: String, provider: TaleMarkerProvider) {
-    val wrapped = object : WorldMapManager.MarkerProvider {
-        override fun update(
-            world: World,
-            config: GameplayConfig,
-            tracker: WorldMapTracker,
-            viewRadius: Int,
-            chunkX: Int,
-            chunkZ: Int
-        ) {
-            val player = tracker.player
-            provider.provideMarkers(world, player, viewRadius, chunkX, chunkZ)
-                .forEach { builder ->
-                    val marker = builder.build()
-                    tracker.trySendMarker(viewRadius, chunkX, chunkZ, marker)
-                }
-        }
+    val wrapped = WorldMapManager.MarkerProvider { providerWorld, player, collector: MarkersCollector ->
+        provider.provideMarkers(providerWorld, player).forEach { collector.add(it.build()) }
     }
     mapManager?.addMarkerProvider(key, wrapped)
 }
@@ -155,36 +142,28 @@ val Player.mapTracker: WorldMapTracker
  * @param block Builder configuration
  * @return The created MapMarker
  */
-fun Player.addPersonalMapMarker(block: MapMarkerBuilder.() -> Unit): MapMarker {
-    val marker = MapMarkerBuilder().apply(block).build()
-    val world = this.world ?: return marker
-    val worldData = this.playerConfigData.getPerWorldData(world.name)
-    val existing = worldData.worldMapMarkers ?: emptyArray()
-    worldData.worldMapMarkers = (existing.toList() + marker).toTypedArray()
+fun Player.addPersonalMapMarker(block: MapMarkerBuilder.() -> Unit): UserMapMarker {
+    val marker = MapMarkerBuilder().apply(block).buildUserMarker()
+    personalMapMarkerStore()?.addUserMapMarker(marker)
     return marker
 }
 
 fun Player.removePersonalMapMarker(markerId: String): Boolean {
-    val world = this.world ?: return false
-    val worldData = this.playerConfigData.getPerWorldData(world.name)
-    val existing = worldData.worldMapMarkers ?: return false
-    val filtered = existing.filter { it.id != markerId }.toTypedArray()
-    if (filtered.size == existing.size) return false
-    worldData.worldMapMarkers = filtered
+    val store = personalMapMarkerStore() ?: return false
+    if (store.getUserMapMarker(markerId) == null) return false
+    store.removeUserMapMarker(markerId)
     return true
 }
 
 fun Player.clearPersonalMapMarkers() {
-    val world = this.world ?: return
-    val worldData = this.playerConfigData.getPerWorldData(world.name)
-    worldData.worldMapMarkers = emptyArray()
+    personalMapMarkerStore()?.setUserMapMarkers(null)
 }
 
-fun Player.getPersonalMapMarkers(): List<MapMarker> {
-    val world = this.world ?: return emptyList()
-    val worldData = this.playerConfigData.getPerWorldData(world.name)
-    return worldData.worldMapMarkers?.toList() ?: emptyList()
-}
+fun Player.getPersonalMapMarkers(): List<UserMapMarker> =
+    personalMapMarkerStore()?.userMapMarkers?.toList() ?: emptyList()
+
+private fun Player.personalMapMarkerStore() =
+    this.world?.let { this.playerConfigData.getPerWorldData(it.name) }
 
 fun Player.refreshMap() {
     this.worldMapTracker.clear()
@@ -199,15 +178,11 @@ fun Player.getMapViewRadius(): Int {
     return this.worldMapTracker.getEffectiveViewRadius(world)
 }
 
-fun Player.setMapTeleportToCoordinates(allow: Boolean) {
-    val world = this.world ?: return
-    this.worldMapTracker.setAllowTeleportToCoordinates(world, allow)
-}
+fun Player.isMapTeleportToCoordinatesAllowed(): Boolean =
+    WorldMapTracker.isAllowTeleportToCoordinates(this.playerRef, this)
 
-fun Player.setMapTeleportToMarkers(allow: Boolean) {
-    val world = this.world ?: return
-    this.worldMapTracker.setAllowTeleportToMarkers(world, allow)
-}
+fun Player.isMapTeleportToMarkersAllowed(): Boolean =
+    this.worldMapTracker.isAllowTeleportToMarkers(this.playerRef, this)
 
 fun Player.discoverZone(zoneName: String): Boolean {
     val world = this.world ?: return false

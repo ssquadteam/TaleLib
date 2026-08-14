@@ -5,7 +5,7 @@ import com.hypixel.hytale.component.CommandBuffer
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
 import com.hypixel.hytale.component.query.Query
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector3d
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.World
@@ -14,6 +14,8 @@ import com.hypixel.hytale.server.npc.NPCPlugin
 import com.hypixel.hytale.server.npc.components.Timers
 import com.hypixel.hytale.server.npc.entities.NPCEntity
 import com.hypixel.hytale.server.npc.role.Role
+import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport
+import com.hypixel.hytale.server.npc.role.support.StateSupport
 import com.hypixel.hytale.server.npc.util.Timer
 import java.time.Instant
 import java.util.function.BiConsumer
@@ -48,42 +50,26 @@ fun Ref<EntityStore>.getNPCRoleIndex(): Int? {
 // NPC State Management
 // ============================================
 
+fun Ref<EntityStore>.getNPCStateSupport(): StateSupport? =
+    if (isValid) StateSupport.get(this, store) else null
+
+fun Ref<EntityStore>.getNPCMarkedEntitySupport(): MarkedEntitySupport? =
+    if (isValid) MarkedEntitySupport.get(this, store) else null
+
 fun Ref<EntityStore>.setNPCState(state: String, subState: String? = null): Boolean {
-    val npc = getNPCEntity() ?: return false
-    val store = this.store
-    return try {
-        npc.role?.stateSupport?.setState(this, state, subState, store)
-        true
-    } catch (e: Exception) {
-        false
-    }
+    val stateSupport = getNPCStateSupport() ?: return false
+    stateSupport.setState(this, state, subState, store)
+    return true
 }
 
-fun Ref<EntityStore>.getNPCState(): String? {
-    return getNPCEntity()?.role?.stateSupport?.stateName
-}
+fun Ref<EntityStore>.getNPCState(): String? = getNPCStateSupport()?.stateName
 
-fun Ref<EntityStore>.getNPCSubState(): String? {
-    return getNPCEntity()?.role?.stateSupport?.let {
-        // SubState name is typically derived from the state support
-        null // The API doesn't expose a direct subState name getter
-    }
-}
+fun Ref<EntityStore>.isInNPCState(state: String): Boolean = getNPCState() == state
 
-fun Ref<EntityStore>.isInNPCState(state: String): Boolean {
-    val npc = getNPCEntity() ?: return false
-    val stateIndex = npc.role?.stateSupport?.stateIndex ?: return false
-    return npc.role?.stateSupport?.inState(stateIndex) == true
-}
+fun Ref<EntityStore>.isInNPCState(state: String, subState: String): Boolean =
+    getNPCStateSupport()?.inState(state, subState) == true
 
-fun Ref<EntityStore>.isInNPCState(state: String, subState: String): Boolean {
-    val npc = getNPCEntity() ?: return false
-    return npc.role?.stateSupport?.inState(state, subState) == true
-}
-
-fun Ref<EntityStore>.isNPCBusy(): Boolean {
-    return getNPCEntity()?.role?.stateSupport?.isInBusyState == true
-}
+fun Ref<EntityStore>.isNPCBusy(): Boolean = getNPCStateSupport()?.isInBusyState == true
 
 // ============================================
 // NPC Lifecycle
@@ -135,42 +121,21 @@ fun Ref<EntityStore>.isNPCDespawning(): Boolean {
 // ============================================
 
 fun Ref<EntityStore>.setNPCTarget(slotName: String, target: Ref<EntityStore>): Boolean {
-    val npc = getNPCEntity() ?: return false
-    return try {
-        npc.role?.setMarkedTarget(slotName, target)
-        true
-    } catch (e: Exception) {
-        false
-    }
+    val markedEntitySupport = getNPCMarkedEntitySupport() ?: return false
+    markedEntitySupport.setMarkedEntity(slotName, target)
+    return true
 }
 
-fun Ref<EntityStore>.getNPCTarget(slotName: String): Ref<EntityStore>? {
-    val npc = getNPCEntity() ?: return null
-    return try {
-        npc.role?.markedEntitySupport?.getMarkedEntityRef(slotName)
-    } catch (e: Exception) {
-        null
-    }
-}
+fun Ref<EntityStore>.getNPCTarget(slotName: String): Ref<EntityStore>? =
+    getNPCMarkedEntitySupport()?.getMarkedEntityRef(slotName)
 
 fun Ref<EntityStore>.clearNPCTarget(slotName: String): Boolean {
-    val npc = getNPCEntity() ?: return false
-    return try {
-        npc.role?.markedEntitySupport?.setMarkedEntity(slotName, null)
-        true
-    } catch (e: Exception) {
-        false
-    }
+    val markedEntitySupport = getNPCMarkedEntitySupport() ?: return false
+    markedEntitySupport.setMarkedEntity(slotName, null)
+    return true
 }
 
-fun Ref<EntityStore>.hasNPCTarget(slotName: String): Boolean {
-    val npc = getNPCEntity() ?: return false
-    return try {
-        npc.role?.markedEntitySupport?.hasMarkedEntityInSlot(slotName) == true
-    } catch (e: Exception) {
-        false
-    }
-}
+fun Ref<EntityStore>.hasNPCTarget(slotName: String): Boolean = getNPCTarget(slotName) != null
 
 // ============================================
 // NPC Leash/Position
@@ -347,7 +312,7 @@ fun World.getNPCsInRange(center: Vector3d, radius: Double): List<Ref<EntityStore
                     val transform = store.getComponent(ref, transformComponentType) as? TransformComponent
                     if (transform != null) {
                         val pos = transform.position as Vector3d
-                        val distSq = center.distanceSquaredTo(pos)
+                        val distSq = center.distanceSquared(pos)
                         if (distSq <= radiusSq) {
                             results.add(ref)
                         }

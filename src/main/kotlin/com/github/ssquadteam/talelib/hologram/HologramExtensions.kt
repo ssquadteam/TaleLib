@@ -4,8 +4,8 @@ package com.github.ssquadteam.talelib.hologram
 
 import com.hypixel.hytale.component.AddReason
 import com.hypixel.hytale.component.Ref
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.Message
 import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.core.entity.entities.ProjectileComponent
@@ -59,7 +59,7 @@ private fun World.createHologramInternal(text: String, x: Double, y: Double, z: 
 
     holder.putComponent(
         TransformComponent.getComponentType(),
-        TransformComponent(Vector3d(x, y, z), Vector3f(0f, 0f, 0f))
+        TransformComponent(Vector3d(x, y, z), Rotation3f(0f, 0f, 0f))
     )
 
     // Create a specific UUID for this entity that we can track

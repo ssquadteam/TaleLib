@@ -1,7 +1,7 @@
 package com.github.ssquadteam.talelib.velocity
 
 import com.hypixel.hytale.component.Ref
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector3d
 import com.hypixel.hytale.protocol.ChangeVelocityType
 import com.hypixel.hytale.protocol.Position
 import com.hypixel.hytale.protocol.packets.entities.ApplyKnockback

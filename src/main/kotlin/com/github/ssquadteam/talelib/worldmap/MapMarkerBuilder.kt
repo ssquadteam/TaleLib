@@ -2,12 +2,14 @@
 
 package com.github.ssquadteam.talelib.worldmap
 
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector3d
 import com.hypixel.hytale.protocol.Direction
 import com.hypixel.hytale.protocol.Position
 import com.hypixel.hytale.protocol.Transform
 import com.hypixel.hytale.protocol.packets.worldmap.ContextMenuItem
 import com.hypixel.hytale.protocol.packets.worldmap.MapMarker
+import com.hypixel.hytale.server.core.Message
+import com.hypixel.hytale.server.core.universe.world.worldmap.markers.user.UserMapMarker
 import java.util.UUID
 
 /**
@@ -69,7 +71,18 @@ class MapMarkerBuilder {
             contextMenuItems.map { (n, c) -> ContextMenuItem(n, c) }.toTypedArray()
         } else null
 
-        return MapMarker(id, name.ifEmpty { null }, icon.ifEmpty { null }, transform, menuItems)
+        val displayName = name.ifEmpty { null }?.let { Message.raw(it).formattedMessage }
+
+        return MapMarker(id, displayName, icon, transform, menuItems, null)
+    }
+
+    internal fun buildUserMarker(): UserMapMarker {
+        val marker = UserMapMarker()
+        marker.id = id
+        marker.name = name.ifEmpty { null }
+        marker.icon = icon
+        marker.setPosition(x.toFloat(), z.toFloat())
+        return marker
     }
 }
 

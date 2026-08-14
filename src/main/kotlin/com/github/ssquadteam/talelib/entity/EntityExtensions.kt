@@ -6,8 +6,8 @@ import com.hypixel.hytale.component.ComponentAccessor
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
 import com.hypixel.hytale.component.Store
-import com.hypixel.hytale.math.vector.Vector3d
-import com.hypixel.hytale.math.vector.Vector3f
+import org.joml.Vector3d
+import com.hypixel.hytale.math.vector.Rotation3f
 import com.hypixel.hytale.server.core.entity.Entity
 import com.hypixel.hytale.server.core.entity.EntityUtils
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
@@ -28,18 +28,18 @@ fun Ref<EntityStore>.getPosition(store: Store<EntityStore>): Vector3d? {
 
 fun Ref<EntityStore>.setPosition(store: Store<EntityStore>, x: Double, y: Double, z: Double) {
     val transform = store.getComponent(this, TransformComponent.getComponentType())
-    transform?.position?.assign(x, y, z)
+    transform?.position?.set(x, y, z)
 }
 
 fun Ref<EntityStore>.setPosition(store: Store<EntityStore>, position: Vector3d) =
     setPosition(store, position.x, position.y, position.z)
 
-fun Ref<EntityStore>.getRotation(store: Store<EntityStore>): Vector3f? {
+fun Ref<EntityStore>.getRotation(store: Store<EntityStore>): Rotation3f? {
     val transform = store.getComponent(this, TransformComponent.getComponentType())
     return transform?.rotation
 }
 
 fun Ref<EntityStore>.setRotation(store: Store<EntityStore>, yaw: Float, pitch: Float, roll: Float = 0f) {
     val transform = store.getComponent(this, TransformComponent.getComponentType())
-    transform?.rotation?.assign(yaw, pitch, roll)
+    transform?.rotation?.set(yaw, pitch, roll)
 }

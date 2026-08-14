@@ -2,7 +2,7 @@ package com.github.ssquadteam.talelib.hologram
 
 import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.component.RemoveReason
-import com.hypixel.hytale.math.vector.Vector3d
+import org.joml.Vector3d
 import com.hypixel.hytale.server.core.entity.UUIDComponent
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent
@@ -60,7 +60,7 @@ class Hologram internal constructor(
     fun setPosition(x: Double, y: Double, z: Double) {
         world.execute {
             val entityStore = world.entityStore ?: return@execute
-            entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.position?.assign(x, y, z)
+            entityStore.store.getComponent(entityRef, TransformComponent.getComponentType())?.position?.set(x, y, z)
         }
     }
 

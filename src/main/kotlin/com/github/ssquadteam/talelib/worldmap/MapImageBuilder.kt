@@ -3,6 +3,7 @@
 package com.github.ssquadteam.talelib.worldmap
 
 import com.hypixel.hytale.protocol.packets.worldmap.MapImage
+import com.hypixel.hytale.server.core.universe.world.chunk.palette.BitFieldArr
 import kotlin.math.min
 
 /**
@@ -112,7 +113,21 @@ class MapImageBuilder(val width: Int = 32, val height: Int = 32) {
     fun getPixels(): IntArray = pixels.copyOf()
 
     internal fun build(): MapImage {
-        return MapImage(width, height, pixels.copyOf())
+        val palette = pixels.distinct().toIntArray()
+        val colorToIndex = palette.withIndex().associate { (index, color) -> color to index }
+        val bitsPerIndex = bitsRequired(palette.size)
+
+        val indices = BitFieldArr(bitsPerIndex, pixels.size)
+        for (i in pixels.indices) {
+            indices.set(i, colorToIndex.getValue(pixels[i]))
+        }
+
+        return MapImage(width, height, palette, bitsPerIndex.toByte(), indices.get())
+    }
+
+    private fun bitsRequired(paletteSize: Int): Int {
+        if (paletteSize <= 1) return 1
+        return Integer.SIZE - Integer.numberOfLeadingZeros(paletteSize - 1)
     }
 
     private fun blendColors(dst: Int, src: Int, srcAlpha: Float): Int {

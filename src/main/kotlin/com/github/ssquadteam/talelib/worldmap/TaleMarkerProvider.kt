@@ -15,7 +15,7 @@ import com.hypixel.hytale.server.core.universe.world.World
  *
  * Example usage:
  * ```kotlin
- * world.registerMarkerProvider("quest_objectives") { world, player, radius, chunkX, chunkZ ->
+ * world.registerMarkerProvider("quest_objectives") { world, player ->
  *     getActiveQuests(player).mapNotNull { quest ->
  *         quest.targetPosition?.let { pos ->
  *             MapMarkerBuilder().apply {
@@ -31,13 +31,7 @@ import com.hypixel.hytale.server.core.universe.world.World
  */
 fun interface TaleMarkerProvider {
 
-    fun provideMarkers(
-        world: World,
-        player: Player,
-        chunkViewRadius: Int,
-        playerChunkX: Int,
-        playerChunkZ: Int
-    ): List<MapMarkerBuilder>
+    fun provideMarkers(world: World, player: Player): List<MapMarkerBuilder>
 }
 
 /**
@@ -45,7 +39,7 @@ fun interface TaleMarkerProvider {
  *
  * Example:
  * ```kotlin
- * val provider = markerProvider { world, player, radius, x, z ->
+ * val provider = markerProvider { world, player ->
  *     listOf(
  *         MapMarkerBuilder().apply {
  *             name = "Dynamic Marker"
@@ -56,14 +50,12 @@ fun interface TaleMarkerProvider {
  * ```
  */
 inline fun markerProvider(
-    crossinline block: (World, Player, Int, Int, Int) -> List<MapMarkerBuilder>
+    crossinline block: (World, Player) -> List<MapMarkerBuilder>
 ): TaleMarkerProvider {
-    return TaleMarkerProvider { world, player, radius, x, z ->
-        block(world, player, radius, x, z)
-    }
+    return TaleMarkerProvider { world, player -> block(world, player) }
 }
 
 fun staticMarkerProvider(vararg markers: MapMarkerBuilder.() -> Unit): TaleMarkerProvider {
     val builtMarkers = markers.map { MapMarkerBuilder().apply(it) }
-    return TaleMarkerProvider { _, _, _, _, _ -> builtMarkers }
+    return TaleMarkerProvider { _, _ -> builtMarkers }
 }

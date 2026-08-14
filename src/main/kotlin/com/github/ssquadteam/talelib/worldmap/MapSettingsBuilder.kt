@@ -2,7 +2,6 @@
 
 package com.github.ssquadteam.talelib.worldmap
 
-import com.hypixel.hytale.protocol.packets.worldmap.BiomeData
 import com.hypixel.hytale.protocol.packets.worldmap.UpdateWorldMapSettings
 
 /**
@@ -16,7 +15,6 @@ import com.hypixel.hytale.protocol.packets.worldmap.UpdateWorldMapSettings
  *     zoomRange(min = 8f, max = 128f, default = 64f)
  *     allowTeleportToMarkers = true
  *     allowTeleportToCoordinates = false
- *     biomeColor(1, 0, "Zone Alpha", "Forest", MapColors.FOREST_GREEN)
  * }
  * ```
  */
@@ -27,13 +25,19 @@ class MapSettingsBuilder {
 
     var allowTeleportToMarkers: Boolean = true
 
+    var allowShowOnMapToggle: Boolean = true
+
+    var allowCompassTrackingToggle: Boolean = true
+
+    var allowCreatingMapMarkers: Boolean = true
+
+    var allowRemovingOtherPlayersMarkers: Boolean = false
+
     var defaultZoom: Float = 32f
 
     var minZoom: Float = 2f
 
     var maxZoom: Float = 256f
-
-    private val biomeColors = mutableMapOf<Short, BiomeData>()
 
     fun zoomRange(min: Float, max: Float, default: Float): MapSettingsBuilder {
         this.minZoom = min
@@ -54,33 +58,15 @@ class MapSettingsBuilder {
         return this
     }
 
-    fun biomeColor(
-        biomeId: Short,
-        zoneId: Int,
-        zoneName: String,
-        biomeName: String,
-        color: Int
-    ): MapSettingsBuilder {
-        biomeColors[biomeId] = BiomeData(zoneId, zoneName, biomeName, color)
-        return this
-    }
-
-    fun biomeColor(biomeId: Short, color: Int): MapSettingsBuilder {
-        biomeColors[biomeId] = BiomeData(biomeId.toInt(), null, null, color)
-        return this
-    }
-
-    fun clearBiomeColors(): MapSettingsBuilder {
-        biomeColors.clear()
-        return this
-    }
-
     internal fun build(): UpdateWorldMapSettings {
         return UpdateWorldMapSettings(
             enabled,
-            biomeColors.takeIf { it.isNotEmpty() },
             allowTeleportToCoordinates,
             allowTeleportToMarkers,
+            allowShowOnMapToggle,
+            allowCompassTrackingToggle,
+            allowCreatingMapMarkers,
+            allowRemovingOtherPlayersMarkers,
             defaultZoom,
             minZoom,
             maxZoom

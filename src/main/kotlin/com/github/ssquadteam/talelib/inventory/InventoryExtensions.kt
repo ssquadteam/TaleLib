@@ -2,78 +2,72 @@
 
 package com.github.ssquadteam.talelib.inventory
 
+import com.hypixel.hytale.component.Ref
 import com.hypixel.hytale.server.core.entity.entities.Player
-import com.hypixel.hytale.server.core.inventory.Inventory
+import com.hypixel.hytale.server.core.inventory.InventoryComponent
+import com.hypixel.hytale.server.core.inventory.InventoryUtils
 import com.hypixel.hytale.server.core.inventory.ItemStack
+import com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer
 import com.hypixel.hytale.server.core.universe.PlayerRef
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
 
 fun PlayerRef.getPlayerComponent(): Player? {
     val ref = this.reference ?: return null
     return ref.store.getComponent(ref, Player.getComponentType())
 }
 
-val PlayerRef.inventory: Inventory?
-    get() = getPlayerComponent()?.inventory
+val Ref<EntityStore>.everything: CombinedItemContainer
+    get() = InventoryComponent.getCombined(store, this, *InventoryComponent.EVERYTHING)
 
-fun PlayerRef.giveItem(item: ItemStack): Boolean {
-    val inv = inventory ?: return false
-    return inv.combinedHotbarFirst.addItemStack(item).succeeded()
-}
+val Ref<EntityStore>.hotbarFirst: CombinedItemContainer
+    get() = InventoryComponent.getCombined(store, this, *InventoryComponent.HOTBAR_FIRST)
 
-fun PlayerRef.giveItem(itemId: String, quantity: Int = 1): Boolean =
-    giveItem(ItemStack(itemId, quantity))
+fun Ref<EntityStore>.giveItem(item: ItemStack): Boolean = hotbarFirst.addItemStack(item).succeeded()
 
-fun PlayerRef.hasItem(itemId: String, quantity: Int = 1): Boolean {
-    val inv = inventory ?: return false
-    val count = inv.combinedEverything.countItemStacks { it.itemId == itemId }
-    return count >= quantity
-}
+fun Ref<EntityStore>.giveItem(itemId: String, quantity: Int = 1): Boolean = giveItem(ItemStack(itemId, quantity))
 
-fun PlayerRef.removeItem(itemId: String, quantity: Int = 1): Boolean {
-    val inv = inventory ?: return false
-    return inv.combinedEverything.removeItemStack(ItemStack(itemId, quantity)).succeeded()
-}
+fun Ref<EntityStore>.countItem(itemId: String): Int = everything.countItemStacks { it.itemId == itemId }
+
+fun Ref<EntityStore>.hasItem(itemId: String, quantity: Int = 1): Boolean = countItem(itemId) >= quantity
+
+fun Ref<EntityStore>.removeItem(itemId: String, quantity: Int = 1): Boolean =
+    everything.removeItemStack(ItemStack(itemId, quantity)).succeeded()
+
+fun Ref<EntityStore>.clearInventory() = InventoryUtils.clear(this, store)
+
+fun Ref<EntityStore>.hasInventorySpace(): Boolean = !hotbarFirst.isEmpty
+
+val Ref<EntityStore>.itemInHand: ItemStack?
+    get() = InventoryComponent.getItemInHand(store, this)
+
+var Ref<EntityStore>.activeHotbarSlot: Int
+    get() = InventoryUtils.getActiveSlot(this, InventoryComponent.HOTBAR_SECTION_ID, store).toInt()
+    set(slot) {
+        store.getComponent(this, InventoryComponent.Hotbar.getComponentType())?.setActiveSlot(slot.toByte(), this, store)
+    }
+
+fun PlayerRef.giveItem(item: ItemStack): Boolean = reference?.giveItem(item) ?: false
+
+fun PlayerRef.giveItem(itemId: String, quantity: Int = 1): Boolean = giveItem(ItemStack(itemId, quantity))
+
+fun PlayerRef.hasItem(itemId: String, quantity: Int = 1): Boolean = reference?.hasItem(itemId, quantity) ?: false
+
+fun PlayerRef.removeItem(itemId: String, quantity: Int = 1): Boolean = reference?.removeItem(itemId, quantity) ?: false
 
 fun PlayerRef.clearInventory() {
-    inventory?.clear()
+    reference?.clearInventory()
 }
 
-fun PlayerRef.getItemCount(itemId: String): Int {
-    val inv = inventory ?: return 0
-    return inv.combinedEverything.countItemStacks { it.itemId == itemId }
-}
+fun PlayerRef.getItemCount(itemId: String): Int = reference?.countItem(itemId) ?: 0
 
 val Player.itemInHand: ItemStack?
-    get() = inventory?.itemInHand
+    get() = reference?.itemInHand
 
 val Player.activeSlot: Int
-    get() = inventory?.activeHotbarSlot?.toInt() ?: 0
+    get() = reference?.activeHotbarSlot ?: 0
 
 fun Player.setHotbarSlot(slot: Int) {
-    inventory?.setActiveHotbarSlot(slot.toByte())
+    reference?.activeHotbarSlot = slot
 }
 
-fun Player.hasInventorySpace(): Boolean {
-    val inv = inventory ?: return false
-    return !inv.combinedHotbarFirst.isEmpty
-}
-
-fun Inventory.giveItem(item: ItemStack): Boolean =
-    combinedHotbarFirst.addItemStack(item).succeeded()
-
-fun Inventory.giveItem(itemId: String, quantity: Int = 1): Boolean =
-    giveItem(ItemStack(itemId, quantity))
-
-fun Inventory.hasItem(itemId: String, quantity: Int = 1): Boolean {
-    val count = combinedEverything.countItemStacks { it.itemId == itemId }
-    return count >= quantity
-}
-
-fun Inventory.removeItem(itemId: String, quantity: Int = 1): Boolean =
-    combinedEverything.removeItemStack(ItemStack(itemId, quantity)).succeeded()
-
-fun Inventory.countItem(itemId: String): Int =
-    combinedEverything.countItemStacks { it.itemId == itemId }
-
-fun Inventory.hasSpace(): Boolean =
-    !combinedHotbarFirst.isEmpty
+fun Player.hasInventorySpace(): Boolean = reference?.hasInventorySpace() ?: false

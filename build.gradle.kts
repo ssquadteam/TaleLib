@@ -3,13 +3,14 @@ import org.jetbrains.gradle.ext.runConfigurations
 import org.jetbrains.gradle.ext.settings
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     java
     `maven-publish`
     id("org.jetbrains.gradle.plugin.idea-ext") version "1.3"
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.serialization") version "1.9.22"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.serialization") version "2.4.10"
 }
 
 // Access properties from gradle.properties
@@ -18,6 +19,7 @@ val includesPack: String = findProperty("includes_pack") as? String ?: "false"
 val loadUserMods: String = findProperty("load_user_mods") as? String ?: "false"
 val javaVersionStr: String = findProperty("java_version") as? String ?: "21"
 val mavenGroup: String = findProperty("maven_group") as? String ?: "com.github.ssquadteam"
+val hytaleServerVersion: String = findProperty("hytale_server_version") as? String ?: "0.6.0-pre.12.1"
 
 val hytaleHome = "${System.getProperty("user.home")}/AppData/Roaming/Hytale"
 
@@ -39,11 +41,13 @@ repositories {
     maven { url = uri("https://jitpack.io") }
     mavenCentral()
     mavenLocal()
+    maven { url = uri("https://maven.hytale.com/release") }
+    maven { url = uri("https://maven.hytale.com/pre-release") }
 }
 
 dependencies {
-    // Hytale Server Dependency (Local)
-    compileOnly(files("libs/HytaleServer.jar"))
+    // Hytale Server Dependency
+    compileOnly("com.hypixel.hytale:Server:$hytaleServerVersion")
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -51,7 +55,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Reflection for annotation processing
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.4.10")
 
     // HytaleRequest
     api("com.github.ssquadteam:HytaleMiniFormat:main-SNAPSHOT")
@@ -115,10 +119,10 @@ idea {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = javaVersionStr
-        freeCompilerArgs = listOf("-Xjsr305=strict")
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.fromTarget(javaVersionStr))
+        freeCompilerArgs.add("-Xjsr305=strict")
     }
 }
 
