@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.github.ssquadteam.talelib.mixins.impl",
+  "mixins": [
+    "InteractionManagerHooks",
+    "ProfileServiceHooks"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

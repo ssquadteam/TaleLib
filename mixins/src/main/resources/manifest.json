@@ -1,0 +1,13 @@
+{
+    "Group": "SSquadTeam",
+    "Name": "TaleLibMixins",
+    "Main": "com.github.ssquadteam.talelib.mixins.TaleMixinsPlugin",
+    "Version": "${version}",
+    "ServerVersion": "*",
+    "Description": "TaleLib mixin runtime and transformations for Hytale server internals",
+    "TaleMixins": {
+        "Configs": [
+            "talelib-mixins.mixins.json"
+        ]
+    }
+}

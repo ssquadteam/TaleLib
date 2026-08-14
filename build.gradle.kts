@@ -52,7 +52,7 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     // Reflection for annotation processing
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.4.10")
@@ -146,7 +146,6 @@ tasks.jar {
         configurations.runtimeClasspath.get().filter {
             it.name.startsWith("kotlin-stdlib") ||
             it.name.startsWith("kotlinx-coroutines") ||
-            it.name.startsWith("kotlinx-serialization") ||
             it.name.startsWith("HytaleMiniFormat")
         }.map { if (it.isDirectory) it else zipTree(it) }
     })
